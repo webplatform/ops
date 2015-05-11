@@ -155,19 +155,6 @@ if [ -z "${SALT_BIN}" ]; then
   exit 1
 fi
 
-(cat <<- _EOF_
------BEGIN RSA PRIVATE KEY-----
-INSERT YOUR OWN PRIVATE KEY HERE
------END RSA PRIVATE KEY-----
-_EOF_
-) > /home/dhc-user/.ssh/id_rsa
-
-id_rsa_pub=$(cat <<- _EOF_
-INSERT YOUR OWN PUBLIC KEY HERE
-_EOF_
-)
-
-clear
 cat << _EOF_
 
  This script is about cloning git repos. Some of those repos have sensitive
@@ -178,7 +165,7 @@ cat << _EOF_
 
  You can create your own keypair and add them to this script yourself.
 
- You got to make sure you remove that key from Gerrit/GitHub afterwards
+ You got to make sure you remove that key from Gitolite afterwards
  unless you never publish them publicly.
 
  To generate a temporary key, run the following (no need for passphrase):
@@ -188,20 +175,17 @@ cat << _EOF_
     cat foo
 
  If we already have a keypair, you should see below what you need to copy
- in Gerrit.
+ in Gitolite on source.webplatform.org
+
+
+
+ OTHERWISE THE SCRIPT WILL BREAK :(
+
+
+
 
 _EOF_
 
-echo ""
-echo "Go to Gerrit, in your account SSH keys, make sure the following is present."
-echo ""
-echo ""
-echo $id_rsa_pub
-echo ""
-echo ""
-echo "IMPORTANT: do NOT keep this key on your account, delete it right after you are done with this script"
-echo ""
-echo ""
 
 while true; do
     read -p "Did you add the public key in your SSH keys? (y/n): " yn

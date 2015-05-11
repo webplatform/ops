@@ -13,7 +13,7 @@ The following set of files can be used to create a new salt master to replicate 
 
  * Edit the *[salt-userdata.yml](./salt-userdata.yml)* to the environment you want to setup.
 
-1. Instantiate using *python-novaclient* CLI utility and use *salt-userdata.yml*
+1. Instantiate using *python-novaclient* CLI utility and use *[salt-userdata.yml](./salt-userdata.yml)*
 
         nova boot --image Ubuntu-14.04-Trusty \
              --user-data salt-userdata.yml \
@@ -30,11 +30,27 @@ The following set of files can be used to create a new salt master to replicate 
 
         scp init.sh dhc-user@10.10.10.129:~
 
+1. **IMPORTANT**, in order to access private data make sure **source.webplatform.org** gitolite config has your **salt-master SSH key**.
+
+  * Ask an administrator to add your *salt-master SSH key* in `git@source.webplatform.org:gitolite-admin.git`
+  * Access to the group `@wpdci` is enough for read-only actions
+
+  **ABOUT YOUR SSH KEYS** Note that its strongly recommended that you don’t use your OWN main SSH key,
+  but that you create a passphrase protected one specifically to work on our servers.
+  One per environment.
+
+1. Make sure your new VM has your *salt-master SSH key**.
+
+  Scripts in this folder expects the file in the new VM as `/home/dhc-user/.ssh/id_rsa*` explicitly.
+  Format  doesn’t matter, as long as **source.webplatform.org** has your key!
+
+        scp -r .ssh dhc-user@10.10.10.129:~
+
 1. On the new VM
 
         ssh dhc-user@10.10.10.129
         sudo -s
         bash init.sh
 
-To get a more detailed procedure, refer to the comments in [init.sh](./init.sh).
+  To get a more detailed procedure, refer to the comments in [init.sh](./init.sh).
 
