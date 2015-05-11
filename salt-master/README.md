@@ -11,11 +11,11 @@ The following set of files can be used to create a new salt master to replicate 
 
 1. Will this deployment to use *webplatform.org* (production) or *webplatformstaging.org* (staging)?
 
- * Edit the *[salt-userdata.yml](./salt-userdata.ytml)* to the environment you want to setup.
+ * Edit the *[salt-userdata.yml](./salt-userdata.yml)* to the environment you want to setup.
 
 1. Instantiate using *python-novaclient* CLI utility and use *salt-userdata.yml*
 
-   nova boot --image Ubuntu-14.04-Trusty \
+        nova boot --image Ubuntu-14.04-Trusty \
              --user-data salt-userdata.yml \
              --key_name salt-renoirb \
              --flavor lightspeed \
@@ -24,17 +24,17 @@ The following set of files can be used to create a new salt master to replicate 
 
 1. Wait and get the new VM IP address
 
-    nova list | grep salt
+        nova list | grep salt
 
 1. Copy init script to the new VM
 
-    scp init.sh dhc-user@10.10.10.129:~
+        scp init.sh dhc-user@10.10.10.129:~
 
 1. On the new VM
 
-    ssh dhc-user@10.10.10.129
-    sudo -s
-    bash init.sh
+        ssh dhc-user@10.10.10.129
+        sudo -s
+        bash init.sh
 
 To get a more detailed procedure, refer to the comments in [init.sh](./init.sh).
 
