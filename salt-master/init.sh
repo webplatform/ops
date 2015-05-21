@@ -150,6 +150,16 @@ echo "Bootstrapping a new Salt master"
 declare -r SALT_BIN=`which salt-call`
 declare -r DATE=`date`
 
+if [ -z "${USER}" ]; then
+  echo "You must declare which user your VM initially has  e.g. USER=vagrant GROUP=vagrant bash init.sh"
+  exit 1
+fi
+
+if [ -z "${GROUP}" ]; then
+  echo "You must declare which group your VM initially has. e.g. USER=vagrant GROUP=vagrant bash init.sh"
+  exit 1
+fi
+
 if [ -z "${SALT_BIN}" ]; then
   echo "Saltstack doesn’t seem to be installed on that machine"
   exit 1
@@ -196,7 +206,7 @@ while true; do
     esac
 done
 
-echo $id_rsa_pub > /home/dhc-user/.ssh/id_rsa.pub
+echo $id_rsa_pub > /home/$USER/.ssh/id_rsa.pub
 
 
 if [ ! -f "/etc/salt/grains" ]; then
@@ -268,8 +278,8 @@ for key in ${!repos[@]}; do
     if [ ! -d "/srv/${key}/.git" ]; then
       echo " * Cloning into /srv/${key}"
       mkdir -p /srv/${key}
-      chown dhc-user:dhc-user /srv/${key}
-      (salt-call --local --log-level=quiet git.clone /srv/${key} ${repos[${key}]} opts="${options[${key}]}" user="dhc-user" identity="/home/dhc-user/.ssh/id_rsa")
+      chown $USER:$GROUP /srv/${key}
+      (salt-call --local --log-level=quiet git.clone /srv/${key} ${repos[${key}]} opts="${options[${key}]}" user="$USER" identity="/home/$USER/.ssh/id_rsa")
     else
       echo " * Repo in /srv/${key} already cloned. Did nothing."
     fi
@@ -335,7 +345,7 @@ salt-key -y -a salt
 echo "Removing temporary SSH key"
 echo -e "\e[31mDID YOU REMOVE the SSH key in Gerrit??\e[0m"
 
-rm /home/dhc-user/.ssh/id_rsa{,.pub}
+rm /home/$USER/.ssh/id_rsa{,.pub}
 
 clear
 

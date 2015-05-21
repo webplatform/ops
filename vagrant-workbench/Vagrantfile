@@ -1,0 +1,56 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$salt_script = <<SALT_SCRIPT
+  apt-get update
+  apt-get -y upgrade
+  apt-get -y autoremove
+  apt-get -yqq install python-dulwich
+SALT_SCRIPT
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "trusty-cloud"
+  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+
+  config.vm.network "private_network", type: "dhcp"
+
+  if Vagrant.has_plugin?("vagrant-cachier")
+    # Configure cached packages to be shared between instances of the same base box.
+    # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
+    config.cache.scope = :box
+
+    config.cache.synced_folder_opts = {
+      type: :nfs,
+      mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
+    }
+    # ref: http://docs.vagrantup.com/v2/synced-folders/basic_usage.html
+  end
+  config.cache.enable :apt
+
+  config.vm.define :salt do |salt|
+      salt.vm.hostname = "salt"
+      salt.vm.synced_folder "salt/states",  "/srv/salt"
+      salt.vm.synced_folder "salt/workbench-repos/states",  "/srv/workbench-repos/states"
+      salt.vm.synced_folder "salt/pillar",  "/srv/pillar"
+
+      salt.vm.provider "virtualbox" do |v|
+        v.name = salt.vm.hostname
+        # ref: http://www.virtualbox.org/manual/ch08.html
+        #v.customize ["modifyvm", :id, "--cpuexecutioncap", "78"]
+        #v.customize ["modifyvm", :id, "--memory", "4072"]
+        v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
+        v.customize ['modifyvm', :id, '--ioapic', 'on']
+      end
+
+      salt.vm.provision :salt do |c|
+        c.master_config = "vagrant/salt-workbench-master.conf"
+        c.minion_config = "vagrant/salt-workbench-minion.conf"
+        c.run_highstate = false
+        c.install_master = true
+        c.verbose = true
+      end
+
+      salt.vm.provision :shell, inline: $salt_script
+  end
+
+end
