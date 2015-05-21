@@ -41,10 +41,10 @@ The [**vagrant-sandbox**][vagrant-sandbox-dir] should provide the workspace to b
 [Review the **vagrant-sandbox** code][vagrant-sandbox-dir]
 
 
-  [the-salt-master](https://docs.webplatform.org/wiki/WPD:Infrastructure/architecture/The_salt_master)
-  [ops-issues](https://github.com/webplatform/ops/issues)
-  [kanban-dashboard](http://webplatform.github.io/ops/)
-  [screenshot-operations-dashboard](https://docs.webplatform.org/wiki/File:20150114-Operations-dashboard.png)
-  [salt-master-dir](./salt-master/)
-  [vagrant-sandbox-dir](./vagrant-sandbox/)
+  [the-salt-master]: https://docs.webplatform.org/wiki/WPD:Infrastructure/architecture/The_salt_master "Salt Master design document"
+  [ops-issues]: https://github.com/webplatform/ops/issues "WebPlatform Operations issue tracker"
+  [kanban-dashboard]: http://webplatform.github.io/ops/ "WebPlatform Operations Kanban dashboard"
+  [screenshot-operations-dashboard]: https://docs.webplatform.org/wiki/File:20150114-Operations-dashboard.png
+  [salt-master-dir]: ./salt-master/
+  [vagrant-sandbox-dir]: ./vagrant-sandbox/
 
