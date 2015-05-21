@@ -2,6 +2,14 @@
 
 This repository contains tools to help maintain our infrastructure.
 
+If you want to get quick access to operations related links, you are invited to use [the **Operations start page**][ops-homepage] as a start page for your browser.
+
+## [Operations start page][ops-homepage]
+
+A static page linking to various tools for infrastructure work.
+
+[Access the **Operations start page**][ops-homepage]
+
 
 ## [Kanban dashboard][kanban-dashboard]
 
@@ -10,11 +18,11 @@ you can visualize their status and how they relate to each other.
 
 Issues are displayed in a 4 columns table, each column describe the issue’s status:
 
-* new,
-* set aside for now,
-* planned to work soon
-* working on it
-* done
+* New ("Pending priotization")
+* Set aside for now ("Later?")
+* Planned to work soon ("Backlog")
+* Working on it
+* Done
 
 Here is a screenshot of how it looks like.
 
@@ -52,7 +60,8 @@ The [**vagrant-sandbox**][vagrant-sandbox-dir] should provide the workspace to b
 
   [the-salt-master]: https://docs.webplatform.org/wiki/WPD:Infrastructure/architecture/The_salt_master "Salt Master design document"
   [ops-issues]: https://github.com/webplatform/ops/issues "WebPlatform Operations issue tracker"
-  [kanban-dashboard]: http://webplatform.github.io/ops/ "WebPlatform Operations Kanban dashboard"
+  [kanban-dashboard]: https://huboard.com/webplatform/ops/#/?repo=%5B%22ops%22%5D "WebPlatform Operations dashboard"
+  [ops-homepage]: http://webplatform.github.io/ops/ "WebPlatform Operations Homepage"
   [screenshot-operations-dashboard]: https://docs.webplatform.org/wiki/File:20150114-Operations-dashboard.png
   [salt-master-dir]: ./salt-master/
   [vagrant-sandbox-dir]: ./vagrant-sandbox/
