@@ -24,3 +24,6 @@ workbench:
     logstash:
       origin: 'git@github.com:webplatform/logstash-formula.git'
       upstream: 'https://github.com/saltstack-formulas/logstash-formula.git'
+    emailblackhole:
+      origin: 'git@github.com:renoirb/emailblackhole-formula.git'
+      upstream: 'https://github.com/renoirb/emailblackhole-formula.git'

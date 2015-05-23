@@ -2,4 +2,5 @@ vagrant-workbench/salt/workbench-repos
 vagrant-workbench/salt/salt-states
 vagrant-workbench/salt/salt-pillar
 vagrant-workbench/.ssh
+vagrant-workbench/init.sh
 .vagrant
