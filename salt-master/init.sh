@@ -138,10 +138,12 @@ We will make this VM as a new Salt master
 
 FOO
 
-apt-get update
-apt-get -y install python-git salt-master salt-minion python-dulwich
-apt-get -y upgrade
-apt-get -y autoremove
+if [ ! -d /srv/ops/salt-master ]; then
+  apt-get update
+  apt-get -y install python-git salt-master salt-minion python-dulwich
+  apt-get -y upgrade
+  apt-get -y autoremove
+fi
 
 echo " "
 echo " "
@@ -345,7 +347,7 @@ salt-key -y -a salt
 echo "Removing temporary SSH key"
 echo -e "\e[31mDID YOU REMOVE the SSH key in Gerrit??\e[0m"
 
-rm /home/$USER/.ssh/id_rsa{,.pub}
+#rm /home/$USER/.ssh/id_rsa{,.pub}
 
 clear
 

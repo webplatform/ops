@@ -29,12 +29,14 @@ Vagrant.configure(2) do |config|
 
   config.vm.define :salt do |salt|
       salt.vm.hostname = "salt"
-      salt.vm.synced_folder "salt/states",  "/srv/salt"
+      salt.vm.synced_folder "salt/states",  "/srv/local/states"
+      salt.vm.synced_folder "salt/pillar",  "/srv/local/pillar"
       salt.vm.synced_folder "salt/workbench-repos/states",  "/srv/workbench-repos/states"
-      salt.vm.synced_folder "salt/pillar",  "/srv/pillar"
+      salt.vm.synced_folder "salt/salt-states",  "/srv/salt", create: true
+      salt.vm.synced_folder "salt/salt-pillar",  "/srv/pillar", create: true
 
       salt.vm.provider "virtualbox" do |v|
-        v.name = salt.vm.hostname
+        v.name = 'salt2' #salt.vm.hostname
         # ref: http://www.virtualbox.org/manual/ch08.html
         #v.customize ["modifyvm", :id, "--cpuexecutioncap", "78"]
         #v.customize ["modifyvm", :id, "--memory", "4072"]

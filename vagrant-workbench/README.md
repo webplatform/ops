@@ -67,21 +67,40 @@ In order to do so, we have to use the exact steps we use to create on a Cloud Pr
 The reason is that we want to have a quickly accessible basic VM to work from that replicates WebPlatform clusters.
 In order to do so, we have to use the exact steps we use to create on a Cloud Provider, but locally.
 
-To fully bootstrap this VM as a salt master, you’ll have to use the [`salt-master/init.sh` scripts][salt-master-init] that are in the present repository.
-
-Then, still from the salt-workbench Vagrant VM;
+From the salt workbench Vagrant VM;
 
     sudo service salt-minion restart
     sudo service salt-master restart
     sudo salt-call state.sls basesystem
     sudo salt-call state.highstate
 
-From your local workspace, just copy the files in `salt-master/` manually to `salt-workbench/` (this folder) so that
-the salt-workbench VM will see it in its `/vagrant` directory.
+Like we previously said, the default salt states doesn’t make the workbench a salt master.
+We’ll have to use the [`salt-master/init.sh` scripts][salt-master-init] that’s managed by this repository.
+
+From your local workspace, just copy `salt-master/init.sh` manually to `salt-workbench/` (this folder) so that
+the salt workbench VM will see it in its `/vagrant` directory.
+
+Last detail, you’ll have to import manually your own SSH key into the VM.
+To do this you can copy the file from your host to this directory, and
+from the salt workbench VM you move it back as `~/.ssh/id_rsa`.
+
+From the salt workbench VM;
+
+    cp /vagrant/yourkey.pub /home/vagrant/.ssh/id_rsa.pub
+    cp /vagrant/yourkey     /home/vagrant/.ssh/id_rsa
+
+**IMPORTANT**: The file name MUST be `~/.ssh/id_rsa`, otherwize the `salt-master/init.sh` won’t work.
+
+Now its time to initialize the salt master.
+Since we’re on Vagrant we don’t have DreamCompute’s dhc-user, we have to tell the script about it.
+
+    sudo -s
+    cd /vagrant
+    USER=vagrant GROUP=vagrant bash init.sh
 
 In order to start the process of creating the salt master you’ll need to have an SSH key pair available in every repository the scripts in `salt-master/*.sh` has.
 
-You’ll have to read the script and ensure that every repository has at least one ssh key the *salt-workbench* VM 
+You’ll have to read the script and ensure that every repository has at least one ssh key the *salt-workbench* VM
 
 
 ### Create minions
