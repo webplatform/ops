@@ -345,9 +345,7 @@ echo "Autoaccepting salt"
 salt-key -y -a salt
 
 echo "Removing temporary SSH key"
-echo -e "\e[31mDID YOU REMOVE the SSH key in Gerrit??\e[0m"
-
-#rm /home/$USER/.ssh/id_rsa{,.pub}
+rm /home/$USER/.ssh/id_rsa{,.pub}
 
 clear
 

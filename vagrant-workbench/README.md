@@ -1,57 +1,98 @@
 # Vagrant Workbench
 
-This directory contains scripts to work on salt states from a [Vagrant][vagrant-site] VM.
+This directory contains scripts to work in a [Vagrant][vagrant-site] VM and replicate the same
+environment we have in production on the [salt master][the-salt-master].
 
-In other words, you can use this to have a local Vagrant VM with anything you need to compile
-a container, or work on salt states that are pulled from `gitfs` in production.
+It should allow you to completely recreate a cluster like we run on www.webplatform.org and
+allow you to work on scripts, and commit changes, so that you can work without impacting production.
 
-While its useful to work on a separate environment such as one we could deploy as `webplatformstaging.org`,
-working locally with the exact configuration is better.
+While its also possible to work from production in folders such as `/srv/salt/`, `/srv/pillar/`
+and `/srv/private/`, some other configuration files can't be edited at all.
 
+Those we can't edit are the ones managed by through [Salt's `gitfs` subsystem][gitfs-walkthrough]
+which allows us to clone and sync configuration automatically.
+
+This workspace therefore allows us to have every depenency pulled as simple git clones
+so we can work on them locally and push them upstream.
 
 
 ## Use
 
-The `Vagrantfile` of this folder creates a Vagrant VM called `salt-workbench`,
-but in order to use it as a fully fledged salt master
-you’ll have to launch manually the [salt-master init script][salt-master-init].
+The `Vagrantfile` of this folder creates a Vagrant VM called `salt`, but a simple `vagrant up`
+will not make it a fully fledged salt master. The Vagrantfile provides a basic VM
+from which we can run the same scripts we use in production to create [our *salt master*][the-salt-master].
+
+For this, you’ll have to launch manually the [salt-master init script][salt-master-init].
 
 The reason of this is that this workbench provides scripts to have Vagrant VMs,
 while keeping the same steps we do in production once we have VMs to work with.
 
-Let’s start things up now.
+
+### Vagrant plugins
 
 Assuming you already have [Vagrant installed][vagrant-site] installed on your local machine,
-you’ll need a few plugins.
-
-Namely;
+you can use the following plugins.
 
     vagrant plugin install vagrant-salt
     vagrant plugin install vagrant-vbguest
     vagrant plugin install vagrant-cachier
 
-**NOTE** Only `vagrant-salt` plugin is mandatory. Others helps to speed things up.
+Note that only `vagrant-salt` plugin is mandatory. Others helps to speed things up.
+
+
+### Before firing up Vagrant
+
+Make sure your have your public and private keys copied into the `.ssh/` folder,
+and make sure they are accessible as `.ssh/id_rsa` and `.ssh/id_rsa.pub`.
+
+Notice that the files MUST be found exacly with this name because other scripts will
+expect them and you'll get errors.
+
+*Tip*, the `.ssh/` is in `.gitignore` so that you can keep a copy without
+worries of commiting them by mistake.
+
+
+### Starting things up
 
 Launch the VM;
 
     vagrant up
 
 Notice that the Vagrantfile doesn’t call `highstate` automatically.
-That’s because we want to rebuild VMs as quickly as possible and building a salt master
-takes some time.
 
-The other reason is that its also ideal to have a simple VM that has the same toolchain we have in production.
+That’s because we want to rebuild VMs as quickly as possible and
+building a salt master takes some time and has many intricate steps.
+
+The other reason is that we'll use the same script
+(i.e. [what's in sibling salt-master/ folder][salt-master-init]) that we use in production.
 
 Once the VM is booted, get in, and launch the initialization process.
 
 From your host, use Vagrant to get into the VM;
 
     vagrant ssh
+
+Make sure the salt accepted itself;
+
+    sudo salt-key
+
+You should see salt in "Accepted Keys" list, otherwise;
+
     sudo salt-key -y -A
+
+
+### First `highstate`
+
+The first `state.highstate` should run from the basic states in `salt/states/workbench/` which basically
+set the workbench by cloning all repositories for us.
+
     sudo salt-call state.highstate
 
-Its basically adding a few helper utilities for the workbench (see blow) and
-it’ll clone the salt-formulas we use in production (see [workbench clones][workbench-clones]).
+If you already ran a full state and destroyed a Vagrant VM,
+you can skip directly to the next step at [Work on salt states](#Work on salt states)
+
+**TIP** Once the first bootup is over, you should have a file in `/vagrant/.ip` with an IP address.
+  This is the file the other VMs in `[../vagrant-minions/][vagrant-minions-dir]` will read from.
 
 If you see one failure, don’t worry, its because the workspace state expects basesystem to be applied and it isn’t. yet.
 
@@ -60,47 +101,29 @@ Once its done, continue with [Work on salt states](#Work on salt states).
 
 ## Work on salt states
 
-By default the default steps of this directory `Vagrantfile` only creates an empty VM.
+By default the default steps of this directory `Vagrantfile` only creates an empty VM to start from.
 
-In order to do so, we have to use the exact steps we use to create on a Cloud Provider, but locally in a Vagrant VM.
+The reason is that we want to have a quickly accessible basic VM to work from.
 
-The reason is that we want to have a quickly accessible basic VM to work from that replicates WebPlatform clusters.
-In order to do so, we have to use the exact steps we use to create on a Cloud Provider, but locally.
+In order to have our own local [salt master][the-salt-master], we'll use the same steps we use in production
+with [`salt-master/init.sh` scripts][salt-master-init].
 
-From the salt workbench Vagrant VM;
-
-    sudo service salt-minion restart
-    sudo service salt-master restart
-    sudo salt-call state.sls basesystem
-    sudo salt-call state.highstate
-
-Like we previously said, the default salt states doesn’t make the workbench a salt master.
-We’ll have to use the [`salt-master/init.sh` scripts][salt-master-init] that’s managed by this repository.
-
-From your local workspace, just copy `salt-master/init.sh` manually to `salt-workbench/` (this folder) so that
-the salt workbench VM will see it in its `/vagrant` directory.
-
-Last detail, you’ll have to import manually your own SSH key into the VM.
-To do this you can copy the file from your host to this directory, and
-from the salt workbench VM you move it back as `~/.ssh/id_rsa`.
-
-From the salt workbench VM;
-
-    cp /vagrant/yourkey.pub /home/vagrant/.ssh/id_rsa.pub
-    cp /vagrant/yourkey     /home/vagrant/.ssh/id_rsa
-
-**IMPORTANT**: The file name MUST be `~/.ssh/id_rsa`, otherwize the `salt-master/init.sh` won’t work.
-
-Now its time to initialize the salt master.
 Since we’re on Vagrant we don’t have DreamCompute’s dhc-user, we have to tell the script about it.
 
-    sudo -s
-    cd /vagrant
+To do this, run the bootstrap like this;
+
     USER=vagrant GROUP=vagrant bash init.sh
 
-In order to start the process of creating the salt master you’ll need to have an SSH key pair available in every repository the scripts in `salt-master/*.sh` has.
+Ignore the instructions the previous script run gave for a minute,
+we'll have to run `workbench` state again to allow to go further.
 
-You’ll have to read the script and ensure that every repository has at least one ssh key the *salt-workbench* VM
+    sudo salt-call state.sls workbench
+    sudo salt-call state.highstate
+
+At the end of this run you can follow the instruction it gives, it should continue
+as if you were on an OpenStack cluster, in the case of our current workspace,
+we'll use the **vagrant minions** VMs instead (next topic).
+
 
 
 ### Create minions
@@ -110,6 +133,7 @@ You can create minions locally and add them to this workbench.
 With Vagrant Cachier plugin and a few Vagrant VMs you could replicate completely WebPlatform servers
 without needing to run it on DreamCompute, AWS or DigitalOcean.
 
+To do so, follow up directions in [../vagrant-minions/ folder][vagrant-minions-dir]
 
 ## Create packages
 
@@ -173,10 +197,32 @@ Once you have your basesystem Vagrant ready, you can build your package with the
     fpm -s python --python-pip /usr/bin/pip -t deb docker-compose==1.1.0
 
 
+
+## See also
+
+This workspace has been inspired by the work of others, you should look at their work too.
+
+### [jedmunds/vagrant][jedmunds-vagrant] Vagrantfile
+
+His *Vagrantfile* has everything configurable in a YAML file.
+While its useful, it was a bit overkill for this project.
+
+
+### [elasticdog/salt-sandbox][salt-sandbox]
+
+Workspace where you can work on Vagrant locally.
+
+
+
   [vagrant-site]: https://www.vagrantup.com/
   [salt-master-init]: ../salt-master/
+  [vagrant-minions-dir]: ../vagrant-minions/
   [salt-sandbox]: https://github.com/elasticdog/salt-sandbox
   [docker-formula]: https://github.com/saltstack-formulas/docker-formula
   [boot2docker]: http://boot2docker.io/
   [workbench-clones]: salt/pillar/workbench/ "Pillar of all gitfs_remotes we use in production"
+  [jedmunds-vagrant]: https://github.com/jedmunds/vagrant
+  [elasticdog-sandbox]: https://github.com/elasticdog/salt-sandbox
+  [gitfs-walkthrough]: http://docs.saltstack.com/en/latest/topics/tutorials/gitfs.html
+  [the-salt-master]: https://docs.webplatform.org/wiki/WPD:Infrastructure/architecture/The_salt_master "Salt Master design document"
 

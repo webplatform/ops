@@ -1,6 +1,7 @@
 vagrant-workbench/salt/workbench-repos
 vagrant-workbench/salt/salt-states
 vagrant-workbench/salt/salt-pillar
+vagrant-workbench/salt/salt-private
 vagrant-workbench/.ssh
 vagrant-workbench/init.sh
 vagrant-workbench/.ip

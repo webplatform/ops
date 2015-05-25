@@ -6,7 +6,19 @@ $salt_script = <<SALT_SCRIPT
   apt-get -y upgrade
   apt-get -y autoremove
   apt-get -yqq install python-dulwich
+  mkdir -p /etc/salt/master.d
+  mv /home/vagrant/salt-workbench-master.conf /etc/salt/master.d/roots.conf
 SALT_SCRIPT
+
+$salt_ip_grain = <<SALT_GRAIN
+  if [ ! -d /etc/salt/pki/master/minions/salt ]; then
+    echo "Autoaccepting salt master"
+    salt-key -y -a salt
+  fi
+  if [ -f /etc/salt/pki/master/minions/salt ]; then
+    salt-call grains.get ip4_interfaces:eth1 --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"][0]' > /vagrant/.ip
+  fi
+SALT_GRAIN
 
 Vagrant.configure(2) do |config|
   config.vm.box = "trusty-cloud"
@@ -27,38 +39,36 @@ Vagrant.configure(2) do |config|
   end
   config.cache.enable :apt
 
-  config.vm.define :salt do |salt|
-      salt.vm.hostname = "salt"
-      salt.vm.synced_folder "salt/states",  "/srv/local/states"
-      salt.vm.synced_folder "salt/pillar",  "/srv/local/pillar"
-      salt.vm.synced_folder "salt/workbench-repos/states",  "/srv/workbench-repos/states"
-      salt.vm.synced_folder "salt/salt-states",  "/srv/salt", create: true
-      salt.vm.synced_folder "salt/salt-pillar",  "/srv/pillar", create: true
-      salt.vm.synced_folder "salt/salt-private",  "/srv/private", create: true
+  config.vm.hostname = "salt"
+  config.vm.synced_folder "salt/states",  "/srv/local/states"
+  config.vm.synced_folder "salt/pillar",  "/srv/local/pillar"
+  config.vm.synced_folder "salt/workbench-repos/states",  "/srv/workbench-repos/states"
+  config.vm.synced_folder "salt/salt-states",  "/srv/salt", create: true
+  config.vm.synced_folder "salt/salt-pillar",  "/srv/pillar", create: true
+  config.vm.synced_folder "salt/salt-private",  "/srv/private", create: true
 
-      salt.vm.provider "virtualbox" do |v|
-        v.name = 'salt' #salt.vm.hostname
-        # ref: http://www.virtualbox.org/manual/ch08.html
-        #v.customize ["modifyvm", :id, "--cpuexecutioncap", "78"]
-        #v.customize ["modifyvm", :id, "--memory", "4072"]
-        v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
-        v.customize ['modifyvm', :id, '--ioapic', 'on']
-      end
-
-      salt.vm.provision :salt do |c|
-        c.master_config = "vagrant/salt-workbench-master.conf"
-        c.minion_config = "vagrant/salt-workbench-minion.conf"
-        c.run_highstate = false
-        c.install_master = true
-        c.verbose = true
-      end
-
-      salt.vm.provision :shell, inline: $salt_script
-      salt.vm.provision "file", source: "../salt-master/init.sh", destination: "/home/vagrant/salt-master.sh"
-
-      salt.vm.provision :shell,
-        inline: "sudo salt-call grains.get ip4_interfaces:eth1 --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"][0]' > /vagrant/.ip",
-        run: "always"
+  config.vm.provider "virtualbox" do |v|
+    v.name = 'salt' #config.vm.hostname
+    # ref: http://www.virtualbox.org/manual/ch08.html
+    #v.customize ["modifyvm", :id, "--cpuexecutioncap", "78"]
+    #v.customize ["modifyvm", :id, "--memory", "4072"]
+    v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
+    v.customize ['modifyvm', :id, '--ioapic', 'on']
   end
+
+  config.vm.provision :salt do |c|
+    c.run_highstate = false
+    c.install_master = true
+    c.verbose = true
+  end
+
+  # Make sure we copy them, because ../salt-master/init.sh normally deletes and its only here that its OK to keep them around.
+  config.vm.provision "file", source: ".ssh/id_rsa", destination: "/home/vagrant/.ssh/id_rsa", run: "always"
+  config.vm.provision "file", source: ".ssh/id_rsa.pub", destination: "/home/vagrant/.ssh/id_rsa.pub", run: "always"
+
+  config.vm.provision "file", source: "../salt-master/init.sh", destination: "/home/vagrant/salt-master.sh"
+  config.vm.provision "file", source: "vagrant/salt-workbench-master.conf", destination: "/home/vagrant/salt-workbench-master.conf"
+  config.vm.provision :shell, inline: $salt_script
+  config.vm.provision :shell, inline: $salt_ip_grain, run: "always"
 
 end

@@ -1,9 +1,5 @@
 {% set repos = salt['pillar.get']('workbench:gitfs_remotes').items() %}
 
-/etc/salt/minion.d/workbench-docker.conf:
-  file.managed:
-    - source: salt://workbench/files/salt/docker.conf
-
 python-git:
   pkg.installed
 
@@ -33,32 +29,34 @@ vagrant:
  #
  # r.items() looks like this:
  #
- #     [('origin', 'git@github.com:webplatform/salt-basesystem.git'), ('upstram', 'https://github.com/webplatform/salt-basesystem.git')]
+ #     [('origin', 'git@github.com:webplatform/salt-basesystem.git'), ('upstream', 'https://github.com/webplatform/salt-basesystem.git')]
  #
  # r looks like this:
  #
- #     {'origin': 'git@github.com:webplatform/salt-basesystem.git', 'upstram': 'https://github.com/webplatform/salt-basesystem.git'}
+ #     {'origin': 'git@github.com:webplatform/salt-basesystem.git', 'upstream': 'https://github.com/webplatform/salt-basesystem.git'}
  #
  #}
 Clone {{ slug }} into Workbench formula repos directory:
   git.latest:
-    - name: {{ r.upstream }}
+    - name: {{ r.origin }}
     - rev: {{ r.branch|default('master') }}
     - target: /srv/workbench-repos/states/{{ slug }}
     - unless: test -d /srv/workbench-repos/states/{{ slug }}/.git
-    - remote_name: upstream
     - user: vagrant
-{% if r.origin is defined %}
+    - identity: /home/vagrant/.ssh/id_rsa
+{% if r.upstream is defined %}
   cmd.run:
-    - name: git remote add origin {{ r.origin }}
-    - unless: grep -q -e 'remote "origin' .git/config
+    - name: git remote add upstream {{ r.upstream }}
+    - unless: grep -q -e 'remote "upstream' .git/config
     - cwd: /srv/workbench-repos/states/{{ slug }}
     - user: vagrant
 
-Add {{ slug }} entry in Workbench salt-master file_roots:
+Add {{ slug }} entry in Workbench /etc/salt/master.d/roots.conf file_roots:
   cmd.run:
-    - name: echo "    - /srv/workbench-repos/states/{{ slug }}" >> /etc/salt/master
-    - unless: grep -q -e "{{ slug }}" /etc/salt/master
+    - name: echo "    - /srv/workbench-repos/states/{{ slug }}" >> /etc/salt/master.d/roots.conf
+    - unless: grep -q -e "{{ slug }}" /etc/salt/master.d/roots.conf
 {% endif %}
 
 {% endfor %}
+# sysctl has an edge case.
+
