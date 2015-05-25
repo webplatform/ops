@@ -54,7 +54,7 @@ Clone {{ slug }} into Workbench formula repos directory:
 Add {{ slug }} entry in Workbench /etc/salt/master.d/roots.conf file_roots:
   cmd.run:
     - name: echo "    - /srv/workbench-repos/states/{{ slug }}" >> /etc/salt/master.d/roots.conf
-    - unless: grep -q -e "{{ slug }}" /etc/salt/master.d/roots.conf
+    - unless: grep -q -e "states\/{{ slug }}" /etc/salt/master.d/roots.conf
 {% endif %}
 
 {% endfor %}
