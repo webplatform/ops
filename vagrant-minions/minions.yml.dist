@@ -1,0 +1,6 @@
+---
+  - name: app0
+  - name: db-masterdb
+  - name: sessions1
+
+# vim: et ts=2 sw=2 ft=yaml:

@@ -3,4 +3,7 @@ vagrant-workbench/salt/salt-states
 vagrant-workbench/salt/salt-pillar
 vagrant-workbench/.ssh
 vagrant-workbench/init.sh
+vagrant-workbench/.ip
+vagrant-minions/minions.yml
+vagrant-minions/shared
 .vagrant

@@ -1,0 +1,109 @@
+# -*- mode: ruby -*-
+
+# Minions config, sample config:
+#
+# # file: ./minions.yml
+# ---
+#   - name: app0
+#   - name: db-masterdb
+#   - name: sessions1
+#
+require 'yaml'
+vagrant_minions = YAML.load_file 'minions.yml'
+
+$update_salt_ip = <<SALT_IP
+if [ -f /home/vagrant/ip ]; then
+  # Make sure its really only has a line with numbers
+  # we will not validate if its a valid IP further.
+  if grep -q '^[1-9].*[1-9]$' /home/vagrant/ip; then
+    IP=`cat /home/vagrant/ip`
+  else
+    # Lets not give bogus data then
+    >&2 echo "File in webplatform/ops clone the file ../vagrant-workbench/.ip will update itself by Vagrant"
+    >&2 echo "This file must contain ONLY an IP address so that this minion can connect to it."
+    >&2 echo "Giving 127.0.0.1 as salt master in /etc/hosts as a fallback."
+    IP="127.0.0.1"
+  fi
+else
+  # No /home/vagrant/ip file
+  # Lets not give bogus data
+  >&2 echo "Could not fine vagrant-workbench IP address, please make sure there is a VM there."
+  >&2 echo "Giving 127.0.0.1 as salt master in /etc/hosts as a fallback."
+  IP="127.0.0.1"
+fi
+
+# If line with string salt dont exist
+if grep -q 'salt$' /etc/hosts; then
+  # Line exists, lets update entry
+  sed -i "s/.*salt$/$IP\tsalt/" /etc/hosts
+  echo "Updated /etc/hosts entry IP for salt to $IP"
+else
+  # Append it to the hosts file
+  # I tried to do an echo here, didnt work, lets keep it
+  # like that here instead.
+  cat /home/vagrant/ip | sed -e "s/$/\tsalt/" >> /etc/hosts
+  echo "Added /etc/hosts entry IP for salt to $IP"
+fi
+SALT_IP
+
+$post_up_message = <<POST_UP
+
+  This is a WebPlatform operations Vagrant minions minion
+
+  This VM is meant to be managed by a salt master.
+
+  If you got no error message so far about the vagrant-workbench IP address,
+  you should be good to go and see this minion in the other VM.
+
+  Have fun!
+
+POST_UP
+
+Vagrant.configure("2") do |config|
+  config.vm.box = 'trusty-cloud'
+  config.vm.box_url = 'https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box'
+  config.ssh.forward_agent = true
+
+  config.vm.network "private_network", type: "dhcp"
+
+  config.vm.synced_folder "shared",  "/srv", create: true
+  config.vm.provision "file", source: "../vagrant-workbench/.ip", destination: "/home/vagrant/ip", run: "always"
+
+  if Vagrant.has_plugin?("vagrant-cachier")
+    # Configure cached packages to be shared between instances of the same base box.
+    # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
+    config.cache.scope = :box
+
+    config.cache.synced_folder_opts = {
+      type: :nfs,
+      mount_options: ['rw', 'vers=3', 'tcp', 'nolock']
+    }
+    # ref: http://docs.vagrantup.com/v2/synced-folders/basic_usage.html
+  end
+  config.cache.enable :apt
+
+  # Common VirtualBox settings
+  config.vm.provider "virtualbox" do |v|
+    v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
+    v.customize ['modifyvm', :id, '--ioapic', 'on']
+  end
+
+  # Common Salt settings
+  config.vm.provision :salt do |s|
+    s.verbose = false
+  end
+
+  vagrant_minions.each do |minion|
+    config.vm.define minion["name"] do |m|
+      m.vm.hostname = minion["name"]
+      m.vm.provider "virtualbox" do |v|
+        v.name = m.vm.hostname
+      end
+    end
+  end
+
+  config.vm.provision :shell, inline: $update_salt_ip, run: "always"
+  config.vm.post_up_message = $post_up_message
+end
+
+# vi: set ft=ruby :
