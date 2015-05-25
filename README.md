@@ -40,7 +40,8 @@ Here is a screenshot of how it looks like.
 
 ## Building a **salt master**
 
-The main component of WebPlatform infrastructure is a VM called `salt` which is used as a server to launch every maintenance task and also as a SSH jump box.
+The main component of WebPlatform infrastructure is a VM called `salt` answering from **salt.webplatform.org**
+which is used as a server to launch every maintenance task and also as a SSH jump box.
 
 While *the salt master* is the most important component of WebPlatform’s infrastructure,
 the server is made in a way that we lose the server at any time and still be able to build a new one from scratch.
@@ -55,20 +56,24 @@ The **[salt-master][salt-master-dir]** folder of this repository contains the sc
 
 
 
-## Configuration workspace sandbox "Vagrant Workbench"
+## Vagrant Workbench; a *salt master* state development sandbox
 
 Our [salt-states][salt-states-repo] scripts supports deployment of the site
 without taking into account the live site.
 
 While it spossible to work on any component of the site from the salt master,
-its preferable to work without touching the live site at all.
+its preferable to be able to work on configuration scripts without any possibility to impact the live site.
 
-Ideally, we should do development work either a staging environment
-(i.e. *webplatformstaging.org*) on an OpenStack project, or from a Vagrant VM.
+Ideally, we should do development work either a staging environment (i.e. *webplatformstaging.org*)
+on an OpenStack project, or from a Vagrant VM.
 
-The [**vagrant-workbench**][vagrant-workbench-dir] should provide the workspace to build locall VMs and work on server configuration.
+The [**vagrant workbench**][vagrant-workbench-dir] AND [**vagrant minions**][vagrant-minions-dir]
+allows you work on salt states within a set of Vagrant VMs.
 
-[Review the **vagrant-workbench** code][vagrant-workbench-dir]
+With both repositories you get everything you need to have your own salt master, and an utility
+to add minions by editing entries in [minions.yml][vagrant-minions-yml].
+
+[Review the **vagrant-workbench**][vagrant-workbench-dir] and [**vagrant-minions**][vagrant-minions-dir] sub-projects.
 
 
   [the-salt-master]: https://docs.webplatform.org/wiki/WPD:Infrastructure/architecture/The_salt_master "Salt Master design document"
@@ -79,3 +84,5 @@ The [**vagrant-workbench**][vagrant-workbench-dir] should provide the workspace 
   [salt-master-dir]: ./salt-master/
   [vagrant-workbench-dir]: ./vagrant-workbench/
   [salt-states-repo]: https://github.com/webplatform/salt-states
+  [vagrant-minions-yml]: ./vagrant-minions/minions.yml.dist
+  [vagrant-minions-dir]: ./vagrant-minions/

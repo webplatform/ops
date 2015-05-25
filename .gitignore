@@ -2,10 +2,12 @@ vagrant-workbench/salt/workbench-repos
 vagrant-workbench/salt/salt-states
 vagrant-workbench/salt/salt-pillar
 vagrant-workbench/salt/salt-private
+vagrant-workbench/salt/code/
 vagrant-workbench/.ssh
 vagrant-workbench/init.sh
 vagrant-workbench/.ip
 vagrant-workbench/.grains
+vagrant-minions/.grains
 vagrant-minions/minions.yml
 vagrant-minions/shared
 .vagrant

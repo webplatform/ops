@@ -118,11 +118,25 @@ Ignore the instructions the previous script run gave for a minute,
 we'll have to run `workbench` state again to allow to go further.
 
     sudo salt-call state.sls workbench
+
+This will change many things, you'll need to restart the salt-master service and be set to run `state.highstate`.
+
+    sudo service salt-master restart
+    sudo salt-call saltutil.sync_all
     sudo salt-call state.highstate
 
-At the end of this run you can follow the instruction it gives, it should continue
-as if you were on an OpenStack cluster, in the case of our current workspace,
-we'll use the **vagrant minions** VMs instead (next topic).
+Its now time to resume procedure after `init.sh`.
+
+    sudo -s
+    cd /srv/ops/salt-master
+
+**IMPORTANT**; the folder `/srv/ops` in the vagrant workbench VM **is NOT mounted from Vagrant, consider that folder as "read only" (!!)**.
+Make sure you commit from your host machine workspace instead, **otherwise you'll lose code**.
+
+Resume the process where we left;
+
+    bash packages.sh
+
 
 
 
@@ -134,6 +148,7 @@ With Vagrant Cachier plugin and a few Vagrant VMs you could replicate completely
 without needing to run it on DreamCompute, AWS or DigitalOcean.
 
 To do so, follow up directions in [../vagrant-minions/ folder][vagrant-minions-dir]
+
 
 ## Create packages
 
