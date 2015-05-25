@@ -5,6 +5,7 @@ vagrant-workbench/salt/salt-private
 vagrant-workbench/.ssh
 vagrant-workbench/init.sh
 vagrant-workbench/.ip
+vagrant-workbench/.grains
 vagrant-minions/minions.yml
 vagrant-minions/shared
 .vagrant
