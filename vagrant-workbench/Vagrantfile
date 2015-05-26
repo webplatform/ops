@@ -17,6 +17,7 @@ $salt_ip_grain = <<SALT_GRAIN
   fi
   if [ -f /etc/salt/pki/master/minions/salt ]; then
     salt-call grains.get ip4_interfaces:eth1 --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"][0]' > /vagrant/.ip
+    #salt-call grains.get ipaddr --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"]' > /vagrant/.ip
   fi
 SALT_GRAIN
 
@@ -42,11 +43,11 @@ Vagrant.configure(2) do |config|
   config.vm.hostname = "salt"
   config.vm.synced_folder "salt/states",  "/srv/local/states"
   config.vm.synced_folder "salt/pillar",  "/srv/local/pillar"
-  config.vm.synced_folder "salt/workbench-repos/states",  "/srv/workbench-repos/states"
   config.vm.synced_folder "salt/salt-states",  "/srv/salt", create: true
   config.vm.synced_folder "salt/salt-pillar",  "/srv/pillar", create: true
   config.vm.synced_folder "salt/salt-private",  "/srv/private", create: true
-  config.vm.synced_folder "salt/code",  "/srv/code", create: true
+  config.vm.synced_folder "workbench-repos/formulas",  "/srv/workbench-repos/formulas", create: true
+  config.vm.synced_folder "workbench-repos/code",  "/srv/code", create: true
 
   config.vm.provider "virtualbox" do |v|
     v.name = 'salt' #config.vm.hostname

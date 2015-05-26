@@ -1,6 +1,8 @@
 ---
+  - name: db0-masterdb
+  - name: elastic0
+  - name: docker0
   - name: app0
-  - name: db-masterdb
-  - name: sessions1
+  - name: sessions0
 
 # vim: et ts=2 sw=2 ft=yaml:

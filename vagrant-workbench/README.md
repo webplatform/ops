@@ -40,6 +40,15 @@ you can use the following plugins.
 Note that only `vagrant-salt` plugin is mandatory. Others helps to speed things up.
 
 
+### Vagrant is configured to use NFS mounts
+
+Make sure your operating system supports NFS mouts.
+
+You can refer to [Vagrant synced-folders NFS mounts section][vagrant-synced-nfs] section.
+
+Also, if you want to get rid of **NFS mount password** at every `vagrant up`, you’ll see instructions in *Vagrant synced-folders NFS mounts* page.
+
+
 ### Before firing up Vagrant
 
 Make sure your have your public and private keys copied into the `.ssh/` folder,
@@ -114,6 +123,10 @@ To do this, run the bootstrap like this;
 
     USER=vagrant GROUP=vagrant bash init.sh
 
+**ONCE its been run; _REBOOT_**, because it deletes the SSH key. This is meant to never leave around something for one time in produciton servers.
+*Just reboot*, the Vagrantfile will copy it back at the right place for you.
+Besides, the script upgrades all packages.
+
 Ignore the instructions the previous script run gave for a minute,
 we'll have to run `workbench` state again to allow to go further.
 
@@ -136,7 +149,7 @@ Make sure you commit from your host machine workspace instead, **otherwise you'l
 Resume the process where we left;
 
     bash packages.sh
-
+    bash code.sh
 
 
 
@@ -240,4 +253,5 @@ Workspace where you can work on Vagrant locally.
   [elasticdog-sandbox]: https://github.com/elasticdog/salt-sandbox
   [gitfs-walkthrough]: http://docs.saltstack.com/en/latest/topics/tutorials/gitfs.html
   [the-salt-master]: https://docs.webplatform.org/wiki/WPD:Infrastructure/architecture/The_salt_master "Salt Master design document"
+  [vagrant-synced-nfs]: http://docs.vagrantup.com/v2/synced-folders/nfs.html
 

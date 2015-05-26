@@ -28,7 +28,7 @@ cd /srv
 mkdir -p code/packages
 cd code/packages
 swift list wpd-packages > filesList
-while read FILE; do swift download wpd-packages $FILE ; done < filesList
+while read FILE; do swift download wpd-packages $FILE --skip-identical; done < filesList
 rm filesList
 chown -R nobody:deployment /srv/code/packages
 

@@ -215,16 +215,16 @@ if [ ! -f "/etc/salt/grains" ]; then
 clear
 echo ""
 echo "What is the deployment level of this cluster? Will it be used as the"
-echo "new production, or its for development?"
+echo "new production, staging, or a development workspace?"
 echo ""
 
 while true; do
-    read -p "What is this salt-master targeted level? [staging,production,dev]: " level
+    read -p "What is this salt-master targeted level? [staging,production,workbench]: " level
     case $level in
         staging ) break;;
         production ) break;;
-        dev ) break;;
-        * ) echo "Only lowercase is accepted; one of [staging,production,dev].";;
+        workbench ) break;;
+        * ) echo "Only lowercase is accepted; one of [staging,production,workbench].";;
     esac
 done
 
