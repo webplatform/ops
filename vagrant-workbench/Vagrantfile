@@ -7,7 +7,7 @@ $salt_script = <<SALT_SCRIPT
   apt-get -y autoremove
   apt-get -yqq install python-dulwich
   mkdir -p /etc/salt/master.d
-  mv /home/vagrant/salt-workbench-master.conf /etc/salt/master.d/roots.conf
+  cp /vagrant/salt/workbench-roots.conf /etc/salt/master.d/roots.conf
 SALT_SCRIPT
 
 $salt_ip_grain = <<SALT_GRAIN
@@ -41,19 +41,20 @@ Vagrant.configure(2) do |config|
   config.cache.enable :apt
 
   config.vm.hostname = "salt"
-  config.vm.synced_folder "salt/states",  "/srv/local/states"
-  config.vm.synced_folder "salt/pillar",  "/srv/local/pillar"
-  config.vm.synced_folder "salt/salt-states",  "/srv/salt", create: true
-  config.vm.synced_folder "salt/salt-pillar",  "/srv/pillar", create: true
-  config.vm.synced_folder "salt/salt-private",  "/srv/private", create: true
-  config.vm.synced_folder "workbench-repos/formulas",  "/srv/workbench-repos/formulas", create: true
-  config.vm.synced_folder "workbench-repos/code",  "/srv/code", create: true
+  config.vm.synced_folder "salt/states",              "/srv/local/states"
+  config.vm.synced_folder "salt/pillar",              "/srv/local/pillar"
+  config.vm.synced_folder "workbench-repos/code",     "/srv/code", create: true
+  config.vm.synced_folder "workbench-repos/states",   "/srv/salt", create: true
+  config.vm.synced_folder "workbench-repos/pillar",   "/srv/pillar", create: true
+  config.vm.synced_folder "workbench-repos/private",  "/srv/private", create: true
+  config.vm.synced_folder "workbench-repos/runner",   "/srv/runner", create: true
+  config.vm.synced_folder "workbench-repos/formulas", "/srv/formulas", create: true
 
   config.vm.provider "virtualbox" do |v|
     v.name = 'salt' #config.vm.hostname
     # ref: http://www.virtualbox.org/manual/ch08.html
-    #v.customize ["modifyvm", :id, "--cpuexecutioncap", "78"]
-    #v.customize ["modifyvm", :id, "--memory", "4072"]
+    v.customize ["modifyvm", :id, "--cpuexecutioncap", "78"]
+    v.customize ["modifyvm", :id, "--memory", "4072"]
     v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
     v.customize ['modifyvm', :id, '--ioapic', 'on']
   end
@@ -69,7 +70,6 @@ Vagrant.configure(2) do |config|
   config.vm.provision "file", source: ".ssh/id_rsa.pub", destination: "/home/vagrant/.ssh/id_rsa.pub", run: "always"
 
   config.vm.provision "file", source: "../salt-master/init.sh", destination: "/home/vagrant/init.sh"
-  config.vm.provision "file", source: "vagrant/salt-workbench-master.conf", destination: "/home/vagrant/salt-workbench-master.conf"
   config.vm.provision :shell, inline: $salt_script
   config.vm.provision :shell, inline: $salt_ip_grain, run: "always"
 

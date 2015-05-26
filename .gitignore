@@ -1,8 +1,9 @@
 vagrant-workbench/workbench-repos/code
+vagrant-workbench/workbench-repos/states
+vagrant-workbench/workbench-repos/pillar
+vagrant-workbench/workbench-repos/private
+vagrant-workbench/workbench-repos/runner
 vagrant-workbench/workbench-repos/formulas
-vagrant-workbench/salt/salt-states
-vagrant-workbench/salt/salt-pillar
-vagrant-workbench/salt/salt-private
 vagrant-workbench/.ssh
 vagrant-workbench/init.sh
 vagrant-workbench/.ip

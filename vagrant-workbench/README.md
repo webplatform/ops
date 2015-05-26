@@ -112,16 +112,15 @@ Once its done, continue with [Work on salt states](#Work on salt states).
 
 By default the default steps of this directory `Vagrantfile` only creates an empty VM to start from.
 
-The reason is that we want to have a quickly accessible basic VM to work from.
-
 In order to have our own local [salt master][the-salt-master], we'll use the same steps we use in production
 with [`salt-master/init.sh` scripts][salt-master-init].
 
-Since we’re on Vagrant we don’t have DreamCompute’s dhc-user, we have to tell the script about it.
+Since we’re on Vagrant we don’t have DreamCompute’s `dhc-user`, we have to tell the script about it.
 
 To do this, run the bootstrap like this;
 
-    USER=vagrant GROUP=vagrant bash init.sh
+    sudo -s
+    RUNAS=vagrant GROUP=vagrant bash init.sh
 
 **ONCE its been run; _REBOOT_**, because it deletes the SSH key. This is meant to never leave around something for one time in produciton servers.
 *Just reboot*, the Vagrantfile will copy it back at the right place for you.
@@ -130,17 +129,16 @@ Besides, the script upgrades all packages.
 Ignore the instructions the previous script run gave for a minute,
 we'll have to run `workbench` state again to allow to go further.
 
-    sudo salt-call state.sls workbench
+    salt-call state.sls workbench
 
 This will change many things, you'll need to restart the salt-master service and be set to run `state.highstate`.
 
-    sudo service salt-master restart
-    sudo salt-call saltutil.sync_all
-    sudo salt-call state.highstate
+    service salt-master restart
+    salt-call saltutil.sync_all
+    salt-call state.highstate
 
 Its now time to resume procedure after `init.sh`.
 
-    sudo -s
     cd /srv/ops/salt-master
 
 **IMPORTANT**; the folder `/srv/ops` in the vagrant workbench VM **is NOT mounted from Vagrant, consider that folder as "read only" (!!)**.
@@ -148,8 +146,10 @@ Make sure you commit from your host machine workspace instead, **otherwise you'l
 
 Resume the process where we left;
 
+Note that if you already ran the workspace and trashed the VM, you don’t need to do it again. Otherwise;
+
     bash packages.sh
-    bash code.sh
+    RUNAS=vagrant bash code.sh
 
 
 
@@ -160,7 +160,7 @@ You can create minions locally and add them to this workbench.
 With Vagrant Cachier plugin and a few Vagrant VMs you could replicate completely WebPlatform servers
 without needing to run it on DreamCompute, AWS or DigitalOcean.
 
-To do so, follow up directions in [../vagrant-minions/ folder][vagrant-minions-dir]
+To do so, follow up directions in [../vagrant-minions/ folder](../vagrant-minions/)
 
 
 ## Create packages

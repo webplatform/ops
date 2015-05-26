@@ -145,6 +145,12 @@ if [ ! -d /srv/ops/salt-master ]; then
   apt-get -y autoremove
 fi
 
+if [ $SUDO_USER == "vagrant" ]; then
+  declare -r IS_WORKBENCH=1
+else
+  declare -r IS_WORKBENCH=0
+fi
+
 echo " "
 echo " "
 echo "Bootstrapping a new Salt master"
@@ -152,13 +158,13 @@ echo "Bootstrapping a new Salt master"
 declare -r SALT_BIN=`which salt-call`
 declare -r DATE=`date`
 
-if [ -z "${USER}" ]; then
-  echo "You must declare which user your VM initially has  e.g. USER=vagrant GROUP=vagrant bash init.sh"
+if [ -z "${RUNAS}" ]; then
+  echo "You must declare which user your VM initially has  e.g. RUNAS=vagrant GROUP=vagrant bash init.sh"
   exit 1
 fi
 
 if [ -z "${GROUP}" ]; then
-  echo "You must declare which group your VM initially has. e.g. USER=vagrant GROUP=vagrant bash init.sh"
+  echo "You must declare which group your VM initially has. e.g. RUNAS=vagrant GROUP=vagrant bash init.sh"
   exit 1
 fi
 
@@ -208,7 +214,7 @@ while true; do
     esac
 done
 
-echo $id_rsa_pub > /home/$USER/.ssh/id_rsa.pub
+echo $id_rsa_pub > /home/$RUNAS/.ssh/id_rsa.pub
 
 
 if [ ! -f "/etc/salt/grains" ]; then
@@ -280,8 +286,8 @@ for key in ${!repos[@]}; do
     if [ ! -d "/srv/${key}/.git" ]; then
       echo " * Cloning into /srv/${key}"
       mkdir -p /srv/${key}
-      chown $USER:$GROUP /srv/${key}
-      (salt-call --local --log-level=quiet git.clone /srv/${key} ${repos[${key}]} opts="${options[${key}]}" user="$USER" identity="/home/$USER/.ssh/id_rsa")
+      chown $RUNAS:$GROUP /srv/${key}
+      (salt-call --local --log-level=quiet git.clone /srv/${key} ${repos[${key}]} opts="${options[${key}]}" user="$RUNAS" identity="/home/$RUNAS/.ssh/id_rsa")
     else
       echo " * Repo in /srv/${key} already cloned. Did nothing."
     fi
@@ -345,18 +351,32 @@ echo "Autoaccepting salt"
 salt-key -y -a salt
 
 echo "Removing temporary SSH key"
-rm /home/$USER/.ssh/id_rsa{,.pub}
+rm /home/$RUNAS/.ssh/id_rsa{,.pub}
 
 clear
 
-echo ""
-echo "Step 1 of 3 completed!"
-echo ""
-echo "Next steps, run:"
-echo " salt-key"
-echo " apt-get update && time apt-get -y dist-upgrade"
-echo " salt salt state.highstate"
-echo " bash /srv/ops/salt-master/packages.sh"
-echo ""
+if [ $IS_WORKBENCH == 0 ]; then
+  echo ""
+  echo "Step 1 of 3 completed!"
+  echo ""
+  echo "Next steps, run:"
+  echo " salt-key"
+  echo " apt-get update && time apt-get -y dist-upgrade"
+  echo " salt salt state.highstate"
+  echo " bash /srv/ops/salt-master/packages.sh"
+  echo ""
+else
+  echo ""
+  echo "Building a Vagrant Workbench:"
+  echo ""
+  echo "Step 1 of 3 completed!"
+  echo ""
+  echo "If its the first time you build, you have to reboot; `vagrant reload`"
+  echo ""
+  echo "Next steps, run:"
+  echo " salt-call state.highstate"
+  echo " RUNAS=$RUNAS bash /srv/ops/salt-master/packages.sh"
+  echo ""
+fi
 
 exit 0
