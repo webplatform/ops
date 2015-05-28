@@ -70,38 +70,3 @@ Add {{ creates }} into Workbench /etc/salt/master.d/roots.conf:
 
 {% endfor %}
 
-
-
-######## Same as users/renoirb.sls COPY-PASTA ########
-include:
-  - users.renoirb
-
-/home/vagrant/.gitconfig:
-  file.managed:
-    - user: vagrant
-    - group: vagrant
-    - mode: 640
-    - source: salt://users/files/renoirb/gitconfig
-
-/home/vagrant/.vimrc:
-  file.managed:
-    - user: vagrant
-    - group: vagrant
-    - source: salt://users/files/renoirb/vimrc
-
-/home/vagrant/.mtailrc:
-  file.managed:
-    - user: vagrant
-    - group: vagrant
-    - source: salt://users/files/renoirb/mtailrc
-
-/home/vagrant/.ssh/config:
-  file.managed:
-    - user: vagrant
-    - group: vagrant
-    - mode: 600
-    - source: salt://users/files/renoirb/sshconfig
-    - require:
-      - ssh_auth: renoirb_keys
-
-######## /same as users/renoirb.sls COPY-PASTA ########
