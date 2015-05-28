@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 #
 # Bootstrapping a new WebPlatform salt master (step 2)
 #

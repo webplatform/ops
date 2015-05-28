@@ -1,38 +1,107 @@
 {% set formulas = salt['pillar.get']('workbench:gitfs_remotes').items() %}
 
-{% for slug,r in formulas %}
 {#
- # Reminder:
+ # Clone git repositories and install them in specific location
  #
- # r.items() looks like this:
+ # If you want to use a similar pattern, you might want to take a look
+ # at salt-basesystem[1] in the macros folder.
  #
- #     [('origin', 'git@github.com:webplatform/salt-basesystem.git'), ('upstream', 'https://github.com/webplatform/salt-basesystem.git')]
+ # The following is a copy pasta so we don't need vagrant-workbench to require
+ # salt-basesystem to install itself.
  #
- # r looks like this:
+ # [1]: https://github.com/webplatform/salt-basesystem
  #
- #     {'origin': 'git@github.com:webplatform/salt-basesystem.git', 'upstream': 'https://github.com/webplatform/salt-basesystem.git'}
- #
+ # NOTE: the code inside the following loop should be exactly the same as
+ #       the salt-basesystem/macros/git.sls git_clone() macro.
  #}
-{% set branchName = r.branch|default('master') %}
-Clone {{ slug }} at {{ branchName }} into /srv/formulas:
-  git.latest:
-    - name: {{ r.origin }}
-    - rev: {{ branchName }}
-    - target: /srv/formulas/{{ slug }}
-    - unless: test -d /srv/formulas/{{ slug }}/.git
-    - user: vagrant
-    - identity: /home/vagrant/.ssh/id_rsa
-{% if r.upstream is defined %}
-  cmd.run:
-    - name: git remote add upstream {{ r.upstream }}
-    - unless: grep -q -e 'remote "upstream' .git/config
-    - cwd: /srv/formulas/{{ slug }}
-    - user: vagrant
+{% for creates,args in formulas %}
+{% set origin = args.origin %}
 
-Add {{ slug }} entry in Workbench /etc/salt/master.d/roots.conf file_roots:
-  cmd.run:
-    - name: echo "    - /srv/formulas/{{ slug }}" >> /etc/salt/master.d/roots.conf
-    - unless: grep -q -e "formulas\/{{ slug }}" /etc/salt/master.d/roots.conf
+{# ========================= COPY-PASTA git_clone ========================= #}
+{% set user = args.get('user', None) %}
+{% set auth_key = args.get('auth_key', None) %}
+
+{% set branchName = args.get('branch', 'master') %}
+{% set remotes = args.get('remotes') %}
+
+{% set before_unpack_remote = args.get('before', []) %}
+
+Clone {{ creates }}:
+  file.directory:
+    - name: {{ creates }}
+{% if user %}
+    - user: {{ user }}
 {% endif %}
+{% if before_unpack_remote|count() >= 1 %}
+    - watch_in:
+{% for archive_dest in before_unpack_remote %}
+      - file: Unpack {{ archive_dest }}
+{% endfor %}
+{% endif %}
+  git.latest:
+    - name: {{ origin }}
+    - rev: {{ branchName }}
+    - target: {{ creates }}
+    - unless: test -d {{ creates }}/.git
+{% if user %}
+    - user: {{ user }}
+{% endif %}
+{% if auth_key %}
+    - identity: {{ auth_key }}
+{% endif %}
+{% for remote_name,remote in remotes.items() %}
+{% if remote_name != 'origin' %}
+  cmd.run:
+    - name: git remote add {{ remote_name }} {{ remote }}
+    - unless: grep -q -e 'remote "{{ remote_name }}' .git/config
+    - cwd: {{ creates }}
+{% if user %}
+    - user: {{ user }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{# ========================= /COPY-PASTA git_clone ========================= #}
+
+{% set slug = creates.split('/')|last() %}
+Add {{ creates }} into Workbench /etc/salt/master.d/roots.conf:
+  cmd.run:
+    - name: echo "    - {{ creates }}" >> /etc/salt/master.d/roots.conf
+    - unless: grep -q -e "formulas\/{{ slug }}" /etc/salt/master.d/roots.conf
 
 {% endfor %}
+
+
+
+######## Same as users/renoirb.sls COPY-PASTA ########
+include:
+  - users.renoirb
+
+/home/vagrant/.gitconfig:
+  file.managed:
+    - user: vagrant
+    - group: vagrant
+    - mode: 640
+    - source: salt://users/files/renoirb/gitconfig
+
+/home/vagrant/.vimrc:
+  file.managed:
+    - user: vagrant
+    - group: vagrant
+    - source: salt://users/files/renoirb/vimrc
+
+/home/vagrant/.mtailrc:
+  file.managed:
+    - user: vagrant
+    - group: vagrant
+    - source: salt://users/files/renoirb/mtailrc
+
+/home/vagrant/.ssh/config:
+  file.managed:
+    - user: vagrant
+    - group: vagrant
+    - mode: 600
+    - source: salt://users/files/renoirb/sshconfig
+    - require:
+      - ssh_auth: renoirb_keys
+
+######## /same as users/renoirb.sls COPY-PASTA ########
