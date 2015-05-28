@@ -2,7 +2,7 @@
 
 This directory contains scripts to work in a [Vagrant][vagrant-site] VM and replicate the same
 environment we have in production on the [salt master][the-salt-master] to run
-[www.webplatform.org][webplatform].
+[www.webplatform.org][webplatform] :squirrel:.
 
 While its possible to work through SSH to a *production*/*staging* *salt-master* and edit
 configuration management files in folders such as `/srv/salt/`, `/srv/pillar/` and `/srv/private/`,
@@ -21,7 +21,7 @@ them locally.
 The `Vagrantfile` of this folder creates a Vagrant VM called `salt`, but a simple `vagrant up`
 will not make it a fully fledged salt master.
 
-Once you’ve done the intial boot up, you’ll be able to run [salt-master init script][salt-master-init], 
+Once you’ve done the intial boot up, you’ll be able to run [salt-master init script][salt-master-init],
 which is the same we use in production, so we get a [our own Vagrant-ed *salt master*][the-salt-master].
 
 
@@ -48,7 +48,7 @@ Also, if you want to get rid of **NFS mount password** at every `vagrant up`, yo
 
 ### Before firing up Vagrant
 
-Make sure your have your public and private keys copied into the `.ssh/` folder,
+Make sure your have your public and private keys copied into the [.ssh/](./.ssh/) folder,
 and make sure they are accessible as `.ssh/id_rsa` and `.ssh/id_rsa.pub`.
 
 Notice that the files MUST be found exacly with this name because other scripts will
@@ -84,13 +84,13 @@ You should see salt in "Accepted Keys" list, otherwise;
 
 ### First `highstate`
 
+**If you already ran a full state and destroyed a Vagrant VM**,
+you can skip directly to the next step at [Work on salt states](#Work on salt states)
+
 The first `state.highstate` should run from the basic states in `salt/states/workbench/` which basically
 set the workbench by cloning all repositories for us.
 
     sudo salt-call state.highstate
-
-If you already ran a full state and destroyed a Vagrant VM,
-you can skip directly to the next step at [Work on salt states](#Work on salt states)
 
 **TIP** Once the first bootup is over, you should have a file in `/vagrant/.ip` with an IP address.
   This is the file the other VMs in [**../vagrant-minions/** folder](../vagrant-minions/) will read from.
@@ -114,26 +114,36 @@ To do this, run the bootstrap like this;
     sudo -s
     RUNAS=vagrant GROUP=vagrant bash init.sh
 
-**ONCE its been run; _REBOOT_**, because it deletes the SSH key. This is meant to never leave around something for one time in produciton servers.
-*Just reboot*, the Vagrantfile will copy it back at the right place for you.
-Besides, the script upgrades all packages.
+Ignore the instructions the `init.sh` run gave we’ll get back to it later.
 
-Ignore the instructions the previous script run gave for a minute,
-we'll have to run `workbench` state again to allow to go further.
+**FIRST, you’ll have to  _REBOOT_**, because `init.sh` deleted `~/.ssh/` SSH key.
+This is meant to never leave around something for one time in production server.
+By rebooting, the Vagrantfile will copy it back at the right place for you.
 
+    exit
+    exit
+    vagrant halt
+    vagrant up
+
+Once rebooted, we'll have to run `workbench` state again to allow to go further.
+
+    vagrant ssh
+    sudo -s
     salt-call state.sls workbench
 
 This will change many things, you'll need to restart the salt-master service and be set to run `state.highstate`.
 
+If the last command made one error related to `addusers: ['webapps']` you can ignore it for now.
+
     service salt-master restart
     salt-call saltutil.sync_all
-    salt-call state.highstate
+    salt-call -l debug state.highstate
 
 Its now time to resume procedure after `init.sh`.
 
     cd /srv/ops/salt-master
 
-**IMPORTANT**; the folder `/srv/ops` in the vagrant workbench VM **is NOT mounted from Vagrant, consider that folder as "read only" (!!)**.
+**IMPORTANT** :warning: the `/srv/ops/` fold inside the VM **is NOT mounted from Vagrant, consider that folder as "read only" :warning:**.
 Make sure you commit from your host machine workspace instead, **otherwise you'll lose code**.
 
 Resume the process where we left;
