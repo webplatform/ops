@@ -35,11 +35,11 @@ rm filesList
 chown -R nobody:deployment /srv/code/packages
 
 mkdir -p /srv/code/auth-server
-cp -r /srv/code/packages/auth-server/archives /srv/code/auth-server/dists
+cp -r /srv/code/packages/auth-server/dists /srv/code/auth-server/dists
 chown -R nobody:deployment /srv/code/auth-server
 
 mkdir -p /srv/code/notes-server
-cp -r /srv/code/packages/notes-server/archives /srv/code/notes-server/dists
+cp -r /srv/code/packages/notes-server/dists /srv/code/notes-server/dists
 chown -R nobody:deployment /srv/code/notes-server
 
 echo ""

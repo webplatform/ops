@@ -20,7 +20,7 @@ set -e
 #
 
 if [ -z "${RUNAS}" ]; then
-  echo "You must declare which user your VM initially has  e.g. RUNAS=vagrant bash code.sh"
+  echo "You must declare which user you are using that has valid ssh keys  e.g. RUNAS=renoirb bash code.sh"
   exit 1
 fi
 
