@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 #
 # Bootstrapping a new WebPlatform salt master (step 1)
 #
@@ -113,7 +115,7 @@
 #
 #    ssh dhc-user@10.10.10.129
 #    sudo -s
-#    bash init.sh
+#    RUNAS=dhc-user GROUP=dhc-user bash init.sh
 #
 # And go on with the show...
 #
@@ -362,7 +364,7 @@ if [ $IS_WORKBENCH == 0 ]; then
   echo "Next steps, run:"
   echo " salt-key"
   echo " apt-get update && time apt-get -y dist-upgrade"
-  echo " salt salt state.highstate"
+  echo " salt-call state.highstate"
   echo " bash /srv/ops/salt-master/packages.sh"
   echo ""
 else

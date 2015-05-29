@@ -109,6 +109,10 @@ Vagrant.configure("2") do |config|
       m.vm.provider "virtualbox" do |v|
         v.name = m.vm.hostname
       end
+      m.vm.provision "shell" do |s|
+        s.inline = "touch /etc/salt/minion.d/workbench.conf ; grep -q -e $1 /etc/salt/minion.d/workbench.conf || printf \"id: $1\" >> /etc/salt/minion.d/workbench.conf"
+        s.args   = minion["name"]
+      end
     end
   end
 

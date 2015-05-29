@@ -1,7 +1,7 @@
 ---
-  - name: db0-masterdb
+  - name: db-masterdb
+  - name: docker
   - name: elastic0
-  - name: docker0
   - name: app0
   - name: sessions0
 

@@ -50,7 +50,7 @@ The following set of files can be used to create a new salt master to replicate 
 
         ssh dhc-user@10.10.10.129
         sudo -s
-        bash init.sh
+        RUNAS=dhc-user GROUP=dhc-user bash init.sh
 
   To get a more detailed procedure, refer to the comments in [init.sh](./init.sh).
 
