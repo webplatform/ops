@@ -180,7 +180,7 @@ which is basically what this is about. The difference here is that we want to ru
 
 To use Vagrant within the Vagrant Workbench, make sure you first ran the inital steps, then;
 
-    sudo salt-call state.sls workbench.docker-builder
+    sudo salt-call state.sls workbench.builder-docker
 
 Since this will add kernel modules, you’ll have to reboot the Vagrant box.
 
@@ -221,8 +221,8 @@ you can do the following from the workbench, and share this to your private repo
 
 Once you have your basesystem Vagrant ready, you can build your package with the following commands.
 
-    salt-call state.sls workbench.python-builder
-    salt-call state.sls workbench.fpm-builder
+    salt-call state.sls workbench.builder-python
+    salt-call state.sls workbench.builder-fpm
     mv python-docker-compose_1.1.0_all.deb /vagrant/
     fpm -s python --python-pip /usr/bin/pip -t deb docker-compose==1.1.0
 
