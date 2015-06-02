@@ -250,8 +250,8 @@ Vagrant workspace where you can configure Docker, Puppet and other providers.
 
 ### Insightful blog posts
 
-*  [Don’t copy your *Vagrantfile*][zigomir-blog-post]
-
+* [Don’t copy your *Vagrantfile*][zigomir-blog-post]
+* [Human Keyboard; SaltStack VirtualBox Vagrant workspace][humankeyboard-saltstack-virtualbox-vagrant]
 
   [vagrant-site]: https://www.vagrantup.com/
   [salt-master-init]: ../salt-master/
@@ -267,4 +267,5 @@ Vagrant workspace where you can configure Docker, Puppet and other providers.
   [webplatform]: https://www.webplatform.org/
   [zigomir-blog-post]: http://blog.zigomir.com/vagrant/dry/vagrantfile/ruby/2015/01/08/dont-copy-your-vagrantfile.html
   [oh-my-vagrant]: https://github.com/purpleidea/oh-my-vagrant
+  [humankeyboard-saltstack-virtualbox-vagrant]: http://humankeyboard.com/saltstack/2014/saltstack-virtualbox-vagrant.html
 
