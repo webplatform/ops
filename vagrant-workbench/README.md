@@ -243,6 +243,15 @@ While its useful, it was a bit overkill for this project.
 Workspace where you can work on Vagrant locally.
 
 
+### [purpleidea/oh-my-vagrant][oh-my-vagrant]
+
+Vagrant workspace where you can configure Docker, Puppet and other providers.
+
+
+### Insightful blog posts
+
+*  [Don’t copy your *Vagrantfile*][zigomir-blog-post]
+
 
   [vagrant-site]: https://www.vagrantup.com/
   [salt-master-init]: ../salt-master/
@@ -256,4 +265,6 @@ Workspace where you can work on Vagrant locally.
   [the-salt-master]: https://docs.webplatform.org/wiki/WPD:Infrastructure/architecture/The_salt_master "Salt Master design document"
   [vagrant-synced-nfs]: http://docs.vagrantup.com/v2/synced-folders/nfs.html
   [webplatform]: https://www.webplatform.org/
+  [zigomir-blog-post]: http://blog.zigomir.com/vagrant/dry/vagrantfile/ruby/2015/01/08/dont-copy-your-vagrantfile.html
+  [oh-my-vagrant]: https://github.com/purpleidea/oh-my-vagrant
 

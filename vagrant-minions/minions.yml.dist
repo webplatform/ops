@@ -1,8 +1,13 @@
 ---
   - name: db-masterdb
   - name: docker
+    ram: 2054
+    cpu_cap: 53
   - name: elastic0
   - name: app0
+    mounts:
+      - { host: '../vagrant-workbench/workbench-repos/code/wiki/repo/mediawiki', guest: '/srv/webplatform/wiki/wpwiki/mediawiki' }
+      - { host: '../vagrant-workbench/workbench-repos/code/dabblet/repo', guest: '/srv/webplatform/dabblet' }
   - name: sessions0
 
 # vim: et ts=2 sw=2 ft=yaml:
