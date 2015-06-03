@@ -139,6 +139,8 @@ If the last command made one error related to `addusers: ['webapps']` you can ig
     salt-call saltutil.sync_all
     salt-call -l debug state.highstate
 
+**If you already ran a full state and destroyed a Vagrant VM**, you **are DONE!**
+
 Its now time to resume procedure after `init.sh`.
 
     cd /srv/ops/salt-master
