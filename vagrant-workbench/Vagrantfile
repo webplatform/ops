@@ -27,7 +27,8 @@ Vagrant.configure(2) do |config|
 
   config.vm.network :forwarded_port, host: 4505, guest: 4505
   config.vm.network :forwarded_port, host: 4506, guest: 4506
-  config.vm.network :forwarded_port, host: 873, guest: 873
+  config.vm.network :forwarded_port, host: 873, guest: 8973
+  config.vm.network :forwarded_port, host: 53, guest: 8953, protocol: 'udp'
 
   config.vm.network "private_network", type: "dhcp"
 
@@ -47,17 +48,21 @@ Vagrant.configure(2) do |config|
   config.vm.hostname = "salt.workbench.wpdn"
   config.vm.synced_folder "salt/states",              "/srv/local/states"
   config.vm.synced_folder "salt/pillar",              "/srv/local/pillar"
-  config.vm.synced_folder "workbench-repos/code",     "/srv/code", create: true
-  config.vm.synced_folder "workbench-repos/states",   "/srv/salt", create: true
-  config.vm.synced_folder "workbench-repos/pillar",   "/srv/pillar", create: true
-  config.vm.synced_folder "workbench-repos/private",  "/srv/private", create: true
-  config.vm.synced_folder "workbench-repos/runner",   "/srv/runner", create: true
-  config.vm.synced_folder "workbench-repos/formulas", "/srv/formulas", create: true
+  config.vm.synced_folder "repos/code",     "/srv/code", create: true
+  config.vm.synced_folder "repos/states",   "/srv/salt", create: true
+  config.vm.synced_folder "repos/pillar",   "/srv/pillar", create: true
+  config.vm.synced_folder "repos/private",  "/srv/private", create: true
+  config.vm.synced_folder "repos/runner",   "/srv/runner", create: true
+  config.vm.synced_folder "repos/formulas", "/srv/formulas", create: true
 
   config.vm.provider "virtualbox" do |v|
     v.name = config.vm.hostname
-    # ref: http://www.virtualbox.org/manual/ch08.html
+    # ref: https://www.virtualbox.org/manual/ch08.html
+    #      https://www.virtualbox.org/wiki/Guest_OSes
     v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
+    v.customize ["modifyvm", :id, "--memory", 2048]
+    v.customize ["modifyvm", :id, "--pae", "on"]
+    v.customize ["modifyvm", :id, "--description", "Weapons of mass destruction"]
   end
 
   config.vm.provision :shell, inline: $salt_script

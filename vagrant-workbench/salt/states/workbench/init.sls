@@ -21,3 +21,10 @@ vagrant:
     - target: /vagrant
     - makedirs: True
 
+Remove stuff we dont need:
+  pkg.purged:
+    - pkgs:
+      - puppet
+      - puppet-common
+      - chef
+      - chef-zero

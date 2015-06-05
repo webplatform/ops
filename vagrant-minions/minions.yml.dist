@@ -1,13 +1,27 @@
 ---
   - name: db-masterdb
+    ports:
+      - { host: 3306, guest: 3306 }
   - name: docker
     ram: 2054
     cpu_cap: 53
+    ports:
+      - { host: 8000, guest: 8000 }
+      - { host: 8001, guest: 8001 }
+      - { host: 8002, guest: 8002 }
+      - { host: 8003, guest: 8003 }
+      - { host: 8004, guest: 8004 }
+      - { host: 8005, guest: 8005 }
   - name: elastic0
+    ports:
+      - { host: 9200, guest: 9200 }
   - name: app0
     mounts:
-      - { host: '../vagrant-workbench/workbench-repos/code/wiki/repo/mediawiki', guest: '/srv/webplatform/wiki/wpwiki/mediawiki' }
-      - { host: '../vagrant-workbench/workbench-repos/code/dabblet/repo', guest: '/srv/webplatform/dabblet' }
+      - { host: '../vagrant-workbench/repos/code/wiki/repo/mediawiki', guest: '/srv/webplatform/wiki/wpwiki/mediawiki' }
+      - { host: '../vagrant-workbench/repos/code/dabblet/repo', guest: '/srv/webplatform/dabblet' }
   - name: sessions0
+    ports:
+      - { host: 6379, guest: 6379 }
+      - { host: 11211, guest: 11211 }
 
 # vim: et ts=2 sw=2 ft=yaml:

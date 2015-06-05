@@ -1,9 +1,9 @@
-vagrant-workbench/workbench-repos/code
-vagrant-workbench/workbench-repos/states
-vagrant-workbench/workbench-repos/pillar
-vagrant-workbench/workbench-repos/private
-vagrant-workbench/workbench-repos/runner
-vagrant-workbench/workbench-repos/formulas
+vagrant-workbench/repos/code
+vagrant-workbench/repos/states
+vagrant-workbench/repos/pillar
+vagrant-workbench/repos/private
+vagrant-workbench/repos/runner
+vagrant-workbench/repos/formulas
 vagrant-workbench/.ssh
 vagrant-workbench/init.sh
 vagrant-workbench/.ip
