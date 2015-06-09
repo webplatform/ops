@@ -324,6 +324,7 @@ fileserver_backend:
   - git
 
 gitfs_remotes:
+  - https://github.com/webplatform/salt-basesystem.git
   - https://github.com/webplatform/redis-formula.git
   - https://github.com/webplatform/saltstack-sysctl-formula.git
   - https://github.com/webplatform/postgres-formula.git
