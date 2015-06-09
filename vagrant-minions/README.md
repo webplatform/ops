@@ -10,11 +10,12 @@ The *vagrant-workbench "salt master"* will take care of them.
 3. Boot it up; `vagrant up`
 4. On the **salt** *vagrant workbench* VM, you'll see the machines waiting to be added to the salt master.
 
+
 ## Use on another machine
 
 If you have more than the computer you work from available to you, you can make them use your *vagrant-workbench* using the following procedure.
 
-The only limitation is that you should make sure that the `[minions.yml](./minions.yml.dist)` has no `mounts` entries,
+The only limitation is that you should make sure that the [minions.yml](./minions.yml.dist) has no `mounts` entries,
 otherwise you would need to clone them manually.
 
 To do this, make sure the other machine(s);

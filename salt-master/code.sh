@@ -54,6 +54,9 @@ echo "About to clone code..."
 
 cd /srv/code
 
+# Will use salt-pillar/basesystem/salt.sls!
+# salt-call pillar.get basesystem:salt:srv_code_repos
+
 declare -A repos
 declare -A options
 

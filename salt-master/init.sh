@@ -69,9 +69,9 @@ set -e
 #
 #     nova boot --image Ubuntu-14.04-Trusty \
 #               --user-data /srv/ops/salt-master/salt-userdata.yml \
-#               --key_name salt-renoirb \
+#               --key_name renoirb \
 #               --flavor lightspeed \
-#               --security-groups default,all,dns,log-dest,mw-eventlog,salt-master \
+#               --security-groups default,salt-master \
 #               salt
 #
 # NOTE: Adjust `key_name` with your secret key that you given in OpenStack dashboard
@@ -120,7 +120,7 @@ set -e
 # And go on with the show...
 #
 clear
-cat << "FOO"
+cat << "WEBPLATFORM_ASCII_BANNER"
 
 
                             _    _      _    ______ _       _    __
@@ -131,34 +131,19 @@ cat << "FOO"
                             \/  \/ \___|_.__/\_|   |_|\__,_|\__|_| \___/|_|  |_| |_| |_|
 
 
-                           WebPlatform Infrastructure
+                           WebPlatform Infrastructure         CREATING A NEW SALT MASTER
 
+WEBPLATFORM_ASCII_BANNER
 
-We will make this VM as a new Salt master
-
-
-
-FOO
-
-if [ ! -d /srv/ops/salt-master ]; then
-  apt-get update
-  apt-get -y install python-git salt-master salt-minion python-dulwich
-  apt-get -y upgrade
-  apt-get -y autoremove
-fi
-
-if [ $SUDO_USER == "vagrant" ]; then
-  declare -r IS_WORKBENCH=1
-else
-  declare -r IS_WORKBENCH=0
-fi
 
 echo " "
 echo " "
 echo "Bootstrapping a new Salt master"
 
+
 declare -r SALT_BIN=`which salt-call`
 declare -r DATE=`date`
+
 
 if [ -z "${RUNAS}" ]; then
   echo "You must declare which user your VM initially has  e.g. RUNAS=vagrant GROUP=vagrant bash init.sh"
@@ -175,10 +160,21 @@ if [ -z "${SALT_BIN}" ]; then
   exit 1
 fi
 
+if [ ! -f "/home/${RUNAS}/.ssh/id_rsa" ]; then
+  echo "Cannot go any further, you MUST have ssh keypair in /home/${RUNAS}/.ssh/id_rsa"
+  exit 1
+fi
+
+
+#
+# Make sure that if you change /srv/private away from using
+# W3C GitLab at https://gitlab.w3.org/webplatform/salt-pillar-private.git
+# The data should be coming from pillar "basesystem:salt:srv_repos:/srv/private"
+#
 cat << _EOF_
 
- This script is about cloning git repos. Some of those repos have sensitive
- data.
+ This script is about cloning git repos and some of them have sensitive
+ data from https://gitlab.w3.org/webplatform/salt-pillar-private.git.
 
  In order to import that sensitive data we need a temporary private-public
  keypair. With it, we’ll be able to fetch private data along with public.
@@ -216,7 +212,10 @@ while true; do
     esac
 done
 
-echo $id_rsa_pub > /home/$RUNAS/.ssh/id_rsa.pub
+
+if [ ! -f "/etc/salt/minion.d/initial_user.conf" ]; then
+  printf "grains:\n  initial_user: ${RUNAS}\n" > /etc/salt/minion.d/initial_user.conf
+fi
 
 
 if [ ! -f "/etc/salt/grains" ]; then
@@ -254,34 +253,29 @@ else
 fi
 
 
-
 echo " * Making sure the name of the master is salt"
 (cat <<- _EOF_
-id: salt
 log_level: debug
 log_level_logfile: debug
 _EOF_
 ) > /etc/salt/minion.d/overrides.conf
 
 
-cd /srv
+mkdir -p /srv/formulas
 
 declare -A repos
 declare -A options
 
 repos["salt"]="https://github.com/webplatform/salt-states.git"
-repos["private"]="https://gitlab.w3.org/webplatform/salt-pillar-private.git"
 repos["pillar"]="https://github.com/webplatform/salt-pillar.git"
-repos["runner"]="git@source.webplatform.org:runners.git"
-repos["ops"]="https://github.com/webplatform/ops.git"
+repos["formulas/basesystem"]="https://github.com/webplatform/salt-basesystem.git"
 
-options["salt"]="--branch 201506-refactor --quiet"
-options["private"]="--branch master --quiet"
-options["pillar"]="--branch master --quiet"
-options["runner"]="--quiet"
-options["ops"]="--quiet"
+options["salt"]="--quiet"
+options["pillar"]="--quiet"
+options["formulas/basesystem"]="--quiet"
 
 
+echo ""
 echo "We will be cloning our new Salt master config repos:"
 
 for key in ${!repos[@]}; do
@@ -289,94 +283,125 @@ for key in ${!repos[@]}; do
       echo " * Cloning into /srv/${key}"
       mkdir -p /srv/${key}
       chown $RUNAS:$GROUP /srv/${key}
-      (salt-call --local --log-level=quiet git.clone /srv/${key} ${repos[${key}]} opts="${options[${key}]}" user="$RUNAS" identity="/home/$RUNAS/.ssh/id_rsa")
+      (salt-call --local --log-level=quiet git.clone /srv/${key} ${repos[${key}]} opts="${options[${key}]}" user="${RUNAS}" identity="/home/${RUNAS}/.ssh/id_rsa")
     else
       echo " * Repo in /srv/${key} already cloned. Did nothing."
     fi
 done
 
-echo ''
+echo ""
 echo "Done cloning config repos"
 echo ""
 
 
 echo "Configuring salt master for initial highstate"
-if [ ! -f "/etc/salt/master.d/roots.conf" ]; then
 (cat <<- _EOF_
+
 # Set in place by webplatform/ops salt-master/init.sh script, this should be overwritten once you
 # make state.highstate.
-file_roots:
-  base:
-    - /srv/salt
 
 pillar_roots:
   base:
     - /srv/pillar
-    - /srv/private/pillar
 
-log_level: debug
-log_level_logfile: debug
-
-gitfs_provider: dulwich
-
-fileserver_backend:
-  - roots
-  - git
-
-gitfs_remotes:
-  - https://github.com/webplatform/salt-basesystem.git
-  - https://github.com/webplatform/redis-formula.git
-  - https://github.com/webplatform/saltstack-sysctl-formula.git
-  - https://github.com/webplatform/postgres-formula.git
-  - https://github.com/webplatform/logrotate-formula.git
-  - https://github.com/saltstack-formulas/nfs-formula.git
-  - https://github.com/saltstack-formulas/logstash-formula.git
-  - https://github.com/webplatform/docker-formula.git
+# Let this list be appended so we can work locally
+# on what is in gitfs_remotes in production.
+file_roots:
+  base:
+    - /srv/salt
+    - /srv/formulas/basesystem
 
 _EOF_
 ) > /etc/salt/master.d/roots.conf
-  echo " * Added roots definitions"
-  echo " * Syncing grains, pillars, states, returners, etc."
-  salt-call --local --log-level=quiet saltutil.sync_all
-else
-  echo " * Salt-master roots was already present"
-fi
 
-echo "Restarting salt (almost there!)"
+echo " * Added roots definitions"
+
+
+echo " * Overriden /srv/pillar/top.sls to have only basesystem.salt for now"
+printf "base:\n  salt:\n    - basesystem.salt\n" > /srv/pillar/top.sls
+
 
 /usr/sbin/service salt-minion restart
 /usr/sbin/service salt-master restart
 
-echo "Going to sleep 10 seconds so that salt-master will see its own minion"
-sleep 10
 
-echo "Autoaccepting salt"
-salt-key -y -a salt
+if [ ! -f /etc/salt/pki/master/minions/salt ]; then
+  echo " * Auto accept salt, we are going to wait 10 seconds so that we can auto-accept"
+  sleep 10
 
-echo "Removing temporary SSH key"
-rm /home/$RUNAS/.ssh/id_rsa{,.pub}
+  salt-key -y -a salt
+else
+  echo " * Auto accept salt; already done"
+fi
 
-clear
 
-if [ $IS_WORKBENCH == 0 ]; then
+salt-call --log-level=quiet saltutil.sync_all
+echo " * Synced grains, pillars, states, returners, etc."
+
+
+echo ""
+echo "Launching salt.new_salt_master state..."
+salt-call state.apply salt.new_master
+
+
+echo "... done"
+
+
+echo ""
+echo "Cleaning things up:"
+
+
+cd /srv/pillar
+git checkout top.sls
+echo " * Set back overridden /srv/pillar/top.sls file"
+
+
+if [ ! -f "/etc/salt/minion.d/workbench.conf" ]; then
+  rm /home/${RUNAS}/.ssh/id_rsa{,.pub}
+  echo " * Removed temporary SSH keys"
+  if [ -d "/srv/formulas/basesystem" ]; then
+    rm -rf /srv/formulas/basesystem
+    echo " * Removed /srv/formulas/basesystem, we should have it in gitfs anyway"
+  fi
+fi
+
+echo "... done"
+
+
+echo ""
+echo "Step 1 of 3 completed!"
+echo ""
+
+
+#
+# The file /etc/salt/minion.d/workbench.conf should ONLY be added
+# via Vagrantfile. This is how we know if we want to clone formulas
+# of use them as gitfs.
+#
+# To rework this bit, you will have to review the salt/new_master.sls
+# state file. The /etc/salt/master.d/gitfs.conf content is loaded in function
+# of the "biosversion" grain, if it matches "VirtualBox".
+#
+# For now, lets only support local formula workbench on VirtualBox VMs
+#
+if [ ! -f "/etc/salt/minion.d/workbench.conf" ]; then
   echo ""
-  echo "Step 1 of 3 completed!"
+  echo "We now have a VM, somewhere. Thats great!"
   echo ""
-  echo "Next steps, run:"
+  echo "Next steps;"
   echo " salt-key"
-  echo " apt-get update && time apt-get -y dist-upgrade"
   echo " salt-call state.highstate"
   echo " bash /srv/ops/salt-master/packages.sh"
   echo ""
 else
   echo ""
-  echo "Building a Vagrant Workbench:"
+  echo "We now have a Vagrant Workbench, thats great!"
   echo ""
-  echo "Step 1 of 3 completed!"
+  echo "If its the first time you build, you have to reboot, e.g."
+  echo " vagrant halt"
+  echo " vagrant up"
   echo ""
-  echo "If its the first time you build, you have to reboot; `vagrant reload`"
-  echo ""
-  echo "Next steps, run:"
+  echo "Next steps;"
   echo " salt-call state.highstate"
   echo " RUNAS=$RUNAS bash /srv/ops/salt-master/packages.sh"
   echo ""

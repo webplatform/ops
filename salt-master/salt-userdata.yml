@@ -32,7 +32,6 @@ package_reboot_if_required: true
 
 # This is run at EVERY boot, good to ensure things are at the right place
 bootcmd:
-  - sysctl -w net.ipv6.conf.all.disable_ipv6=1
   - grep -q -e 'nameserver' /etc/resolvconf/resolv.conf.d/head || printf "nameserver 127.0.0.1\n" >> /etc/resolvconf/resolv.conf.d/head
   # For production, comment ^ and uncomment below
   #- grep -q -e 'wpdn' /etc/resolvconf/resolv.conf.d/base || printf "search production.wpdn\ndomain production.wpdn\nnameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
@@ -41,22 +40,34 @@ bootcmd:
 
 
 runcmd:
-  - sysctl -w net.ipv6.conf.all.disable_ipv6=1
   - sed -i "s/127.0.0.1 localhost/127.0.1.1 $(hostname).staging.wpdn $(hostname)\n127.0.0.1 localhost/" /etc/hosts
   #- sed -i "s/127.0.0.1 localhost/127.0.1.1 $(hostname).production.wpdn $(hostname)\n127.0.0.1 localhost/" /etc/hosts
+
+  # Make sure we have its the same in:
+  #  - https://github.com/webplatform/ops in vagrant-workbench/Vagrantfile
+  #  - https://github.com/webplatform/ops in salt-master/salt-userdata.yml
+  ########
   - add-apt-repository -y ppa:saltstack/salt
   - apt-get update
-  - apt-get -y upgrade
-  - apt-get -y autoremove
-  - apt-get -y upgrade salt-minion
+  - apt-get -yqq upgrade
+  - apt-get -yqq autoremove
+  - apt-get -yqq install python-dulwich python-git git salt-master salt-minion
+  - touch /etc/salt/minion.d/id.conf ; grep -q -e "salt" /etc/salt/minion.d/id.conf || printf "id: salt\n" >> /etc/salt/minion.d/id.conf
+  ########
+
 
 
 write_files:
   - encoding: b64
+    ## MAKE SURE ONLY ONE content line is uncommented below.
+    ## Below is for staging
     content: bGV2ZWw6IHN0YWdpbmc=
-    # For production, comment ^ and uncomment below
+    ## Below is for production
     #content: bGV2ZWw6IHByb2R1Y3Rpb24=
+    ## Below is for workbench
+    #content: bGV2ZWw6IHdvcmtiZW5jaA==
     path: /etc/salt/grains
+
 
 # The content ^ contains a base64 encoded string that contains exactly "level:staging" (without quotes)
 # it was meant to make sure that cloudinit wouldn’t break because it was taking previous attempts as part
@@ -64,11 +75,8 @@ write_files:
 
 
 packages:
-  - salt-minion
-  - salt-common
   - python-software-properties
   - software-properties-common
-  - salt-master
+
 
 # vim: et ts=2 sw=2 ft=yaml:
-

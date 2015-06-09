@@ -2,19 +2,24 @@
 # vi: set ft=ruby :
 
 $salt_script = <<SALT_SCRIPT
+
+  # Make sure we have its the same in:
+  #  - https://github.com/webplatform/ops in vagrant-workbench/Vagrantfile
+  #  - https://github.com/webplatform/ops in salt-master/salt-userdata.yml
+  ########
+  add-apt-repository -y ppa:saltstack/salt
   apt-get update
-  apt-get -y upgrade
-  apt-get -y autoremove
-  apt-get -yqq install python-dulwich
-  mkdir -p /etc/salt/{minion,master}.d
-  cp /vagrant/salt/workbench-roots.conf /etc/salt/master.d/roots.conf
-  touch /etc/salt/minion.d/workbench.conf ; grep -q -e "salt" /etc/salt/minion.d/workbench.conf || printf "id: salt\n" >> /etc/salt/minion.d/workbench.conf
+  apt-get -yqq upgrade
+  apt-get -yqq autoremove
+  apt-get -yqq install python-dulwich python-git git salt-master salt-minion
+  touch /etc/salt/minion.d/id.conf ; grep -q -e "salt" /etc/salt/minion.d/id.conf || printf "id: salt\n" >> /etc/salt/minion.d/id.conf
+  ########
+
+  printf "# Workbench" > /etc/salt/minion.d/workbench.conf
 SALT_SCRIPT
 
 $salt_ip_grain = <<SALT_GRAIN
-  if [ ! -f /etc/salt/pki/master/minions/salt ]; then
-    salt-key -y -a salt
-  fi
+  echo "Create a ~/.ip file with the Vagrant VM IP address"
   if [ -f /etc/salt/pki/master/minions/salt ]; then
     salt-call --log-level=quiet --no-color --local grains.get ip4_interfaces:eth1 --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"][0]' > /vagrant/.ip
     #salt-call --log-level=quiet --no-color --local grains.get ipaddr --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"]' > /vagrant/.ip
@@ -45,9 +50,8 @@ Vagrant.configure(2) do |config|
   end
   config.cache.enable :apt
 
-  config.vm.hostname = "salt.workbench.wpdn"
-  config.vm.synced_folder "salt/states",              "/srv/local/states"
-  config.vm.synced_folder "salt/pillar",              "/srv/local/pillar"
+  config.vm.hostname =    "salt.workbench.wpdn"
+  config.vm.synced_folder "salt/states",    "/srv/local/states"
   config.vm.synced_folder "repos/code",     "/srv/code", create: true
   config.vm.synced_folder "repos/states",   "/srv/salt", create: true
   config.vm.synced_folder "repos/pillar",   "/srv/pillar", create: true
@@ -56,13 +60,13 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder "repos/formulas", "/srv/formulas", create: true
 
   config.vm.provider "virtualbox" do |v|
-    v.name = config.vm.hostname
+    v.name = config.vm.hostname + " " + Time.now.strftime("%Y-%m-%d")
     # ref: https://www.virtualbox.org/manual/ch08.html
     #      https://www.virtualbox.org/wiki/Guest_OSes
     v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
     v.customize ["modifyvm", :id, "--memory", 2048]
     v.customize ["modifyvm", :id, "--pae", "on"]
-    v.customize ["modifyvm", :id, "--description", "Weapons of mass destruction"]
+    v.customize ["modifyvm", :id, "--description", "Vagrant Workbench Salt master VM built on " + Time.now.strftime("%Y-%m-%d" ) + " located in " + File.dirname(__FILE__) ]
   end
 
   config.vm.provision :shell, inline: $salt_script

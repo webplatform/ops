@@ -19,7 +19,7 @@ The following set of files can be used to create a new salt master to replicate 
              --user-data salt-userdata.yml \
              --key_name salt-renoirb \
              --flavor lightspeed \
-             --security-groups default,all,dns,log-dest,mw-eventlog,salt-master \
+             --security-groups default,salt-master \
              salt
 
 1. Wait and get the new VM IP address

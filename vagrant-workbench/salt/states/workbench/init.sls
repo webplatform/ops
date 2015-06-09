@@ -1,8 +1,3 @@
-{% if grains['nodename'] == 'salt' %}
-include:
-  - workbench.salt
-{% endif %}
-
 python-git:
   pkg.installed
 
