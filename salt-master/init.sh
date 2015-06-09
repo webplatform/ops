@@ -269,13 +269,13 @@ cd /srv
 declare -A repos
 declare -A options
 
-repos["salt"]="git@source.webplatform.org:salt-states.git"
-repos["private"]="git@source.webplatform.org:pillars-private.git"
-repos["pillar"]="git@source.webplatform.org:pillars.git"
+repos["salt"]="https://github.com/webplatform/salt-states.git"
+repos["private"]="https://gitlab.w3.org/webplatform/salt-pillar-private.git"
+repos["pillar"]="https://github.com/webplatform/salt-pillar.git"
 repos["runner"]="git@source.webplatform.org:runners.git"
 repos["ops"]="https://github.com/webplatform/ops.git"
 
-options["salt"]="--branch master --quiet"
+options["salt"]="--branch 201506-refactor --quiet"
 options["private"]="--branch master --quiet"
 options["pillar"]="--branch master --quiet"
 options["runner"]="--quiet"
