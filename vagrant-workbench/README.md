@@ -73,34 +73,8 @@ From your host, use Vagrant to get into the VM;
 
     vagrant ssh
 
-Make sure the salt accepted itself;
-
-    sudo salt-key
-
-You should see salt in "Accepted Keys" list, otherwise;
-
-    sudo salt-key -y -A
-
-
-### First `highstate`
-
-**If you already ran a full state and destroyed a Vagrant VM**,
-you can skip directly to the next step at [Work on salt states](#Work on salt states)
-
-The first `state.highstate` should run from the basic states in `salt/states/workbench/` which basically
-set the workbench by cloning all repositories for us.
-
-    sudo salt-call state.highstate
-
 **TIP** Once the first bootup is over, you should have a file in `/vagrant/.ip` with an IP address.
   This is the file the other VMs in [**../vagrant-minions/** folder](../vagrant-minions/) will read from.
-
-If you see one failure, don’t worry, its because the workspace state expects basesystem to be applied and it isn’t. yet.
-
-Once its done, continue with [Work on salt states](#Work on salt states).
-
-
-## Work on salt states
 
 By default the default steps of this directory `Vagrantfile` only creates an empty VM to start from.
 
@@ -114,32 +88,15 @@ To do this, run the bootstrap like this;
     sudo -s
     RUNAS=vagrant GROUP=vagrant bash init.sh
 
-Ignore the instructions the `init.sh` run gave we’ll get back to it later.
+This should ensure we clone every git repository in a consistent in every environment.
 
-**FIRST, you’ll have to  _REBOOT_**, because `init.sh` deleted `~/.ssh/` SSH key.
-This is meant to never leave around something for one time in production server.
-By rebooting, the Vagrantfile will copy it back at the right place for you.
+Also, in the case of a Vagrant VM managed by VirtualBox, it’ll take care of copying files so that the `vagrant-minions/` knows how to find the salt master.
 
-    exit
-    exit
-    vagrant halt
-    vagrant up
+We are ready for the highstate;
 
-Once rebooted, we'll have to run `workbench` state again to allow to go further.
+    salt-call state.highstate
 
-    vagrant ssh
-    sudo -s
-    salt-call state.sls workbench
-
-This will change many things, you'll need to restart the salt-master service and be set to run `state.highstate`.
-
-If the last command made one error related to `addusers: ['webapps']` you can ignore it for now.
-
-    service salt-master restart
-    salt-call saltutil.sync_all
-    salt-call -l debug state.highstate
-
-**If you already ran a full state and destroyed a Vagrant VM**, you **are DONE!**
+If you see erros *highstate* result output, you might have to run the command another time. It can be an ordering bug in the [state repository][salt-states].
 
 Its now time to resume procedure after `init.sh`.
 
@@ -270,4 +227,5 @@ Vagrant workspace where you can configure Docker, Puppet and other providers.
   [zigomir-blog-post]: http://blog.zigomir.com/vagrant/dry/vagrantfile/ruby/2015/01/08/dont-copy-your-vagrantfile.html
   [oh-my-vagrant]: https://github.com/purpleidea/oh-my-vagrant
   [humankeyboard-saltstack-virtualbox-vagrant]: http://humankeyboard.com/saltstack/2014/saltstack-virtualbox-vagrant.html
+  [salt-states]: https://github.com/webplatform/salt-states
 

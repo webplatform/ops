@@ -24,7 +24,7 @@ if [ -z "${RUNAS}" ]; then
   exit 1
 fi
 
-if [ $SUDO_USER == "vagrant" ]; then
+if [ -f "/etc/salt/minion.d/workbench.conf" ]; then
   declare -r IS_WORKBENCH=1
 else
   declare -r IS_WORKBENCH=0
@@ -54,42 +54,13 @@ echo "About to clone code..."
 
 cd /srv/code
 
-# Will use salt-pillar/basesystem/salt.sls!
-# salt-call pillar.get basesystem:salt:srv_code_repos
-
-declare -A repos
-declare -A options
-
-repos["buggenie"]="git@github.com:webplatform/thebuggenie.git"
-repos["dabblet"]="git@github.com:webplatform/dabblet.git"
-repos["notes-server"]="git@github.com:webplatform/annotation-service.git"
-repos["bots"]="git@source.webplatform.org:pierc.git"
-repos["mailhub"]="git@source.webplatform.org:mailhub.git"
-repos["webat25"]="git@source.webplatform.org:webat25.git"
-repos["campaign-bookmarklet"]="git@github.com:webplatform/campaign-bookmarklet.git"
-repos["compat"]="git@github.com:webplatform/compatibility-data.git"
-repos["docsprint-dashboard"]="git@github.com:webplatform/DocSprintDashboard.git"
-repos["www"]="git@github.com:webplatform/www.webplatform.org.git"
-repos["blog"]="git@github.com:webplatform/blog-service.git"
-
-options["buggenie"]="--branch webplatform-customizations --quiet"
-options["dabblet"]="--branch webplatform-customizations --quiet"
-options["notes-server"]="--quiet"
-options["bots"]="--quiet"
-options["mailhub"]="--quiet"
-options["webat25"]="--quiet"
-options["campaign-bookmarklet"]="--quiet"
-options["compat"]="--quiet"
-options["docsprint-dashboard"]="--quiet"
-options["www"]="--quiet"
-options["blog"]="--recurse-submodules --quiet"
-
-if [ $IS_WORKBENCH == 0 ]; then
-  repos["wiki"]="git@github.com:webplatform/mediawiki-core.git"
-  options["wiki"]="--branch wmf/1.25wmf15 --quiet"
-  #options["wiki"]="--branch 1.24wmf16-wpd --recurse-submodules --quiet"
-else
+if [ $IS_WORKBENCH == 1 ]; then
   echo "We will NOT clone MediaWiki, you will have to do it yourself. Its TOO HEAVY."
+  # This ID is based on the salt-basesystem/macros/git.sls git_clone() macro
+  SLS_IGNORE = 'exclude=[{"id": "Git clone /srv/code/wiki/repo/mediawiki"}]'
+else
+  echo "We WILL clone MediaWiki."
+  SLS_IGNORE = ''
 fi
 
 #salt-call --local --log-level=quiet git.config_set setting_name=user.email setting_value="hostmaster@webplatform.org" is_global=True
@@ -97,34 +68,11 @@ fi
 #salt-call --local --log-level=quiet git.config_set setting_name=core.autocrlf setting_value=true is_global=True
 salt-call --local --log-level=quiet git.config_set setting_name=core.editor setting_value=vim is_global=True
 
-echo "We will be cloning code repositories:"
 
-for key in ${!repos[@]}; do
-    if [ "${key}" == "wiki" ]; then
-      if [ ! -d "/srv/code/${key}/repo/mediawiki/.git" ]; then
-        echo " * Cloning MediaWiki without dealing with gitmodules."
-        mkdir -m 775 -p /srv/code/${key}/repo/mediawiki
-        if [ $IS_WORKBENCH == 0 ]; then
-          chown -R $RUNAS:deployment /srv/code/${key}/repo/mediawiki
-        fi
-        (salt-call --local --log-level=quiet git.clone /srv/code/${key}/repo/mediawiki ${repos[${key}]} opts="${options[${key}]}" user="$RUNAS")
-        mkdir -m 775 /srv/code/${key}/repo/settings.d
-      else
-        echo " * Repo /srv/code/${key}/repo/mediawiki already cloned. Did nothing."
-      fi
-    else
-      if [ ! -d "/srv/code/${key}/repo/.git" ]; then
-        echo " * Cloning into /srv/code/${key}/repo"
-        mkdir -m 775 -p /srv/code/${key}
-        if [ $IS_WORKBENCH == 0 ]; then
-            chown -R $RUNAS:deployment /srv/code/${key}
-        fi
-        (salt-call --local --log-level=quiet git.clone /srv/code/${key}/repo ${repos[${key}]} opts="${options[${key}]}" user="$RUNAS")
-      else
-        echo " * Repo in /srv/code/${key}/repo already cloned. Did nothing."
-      fi
-    fi
-done
+echo ""
+echo "We will be cloning code repositories:"
+salt-call state.sls roles.salt ${SLS_IGNORE}
+
 
 if [ $IS_WORKBENCH == 0 ]; then
   chown -R nobody:deployment /srv/code/
@@ -132,6 +80,7 @@ if [ $IS_WORKBENCH == 0 ]; then
   find /srv/code -type d -exec chmod g+w {} \;
   find /srv/code -type d -exec chmod g+x {} \;
 fi
+
 
 echo ""
 echo "Step 3 of 3 completed!"

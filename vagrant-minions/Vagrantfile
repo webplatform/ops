@@ -13,16 +13,16 @@ vagrant_minions = YAML.load_file 'minions.yml'
 
 $update_salt_ip = <<SALT_IP
 if [ -d /etc/salt ]; then
-  if [ -f /home/vagrant/grains ]; then
-    cp /home/vagrant/grains /etc/salt/grains
+  if [ -f /home/vagrant/.grains ]; then
+    cp /home/vagrant/.grains /etc/salt/grains
   fi
 fi
 
-if [ -f /home/vagrant/ip ]; then
+if [ -f /home/vagrant/.ip ]; then
   # Make sure its really only has a line with numbers
   # we will not validate if its a valid IP further.
-  if grep -q '^[1-9].*[1-9]$' /home/vagrant/ip; then
-    IP=`cat /home/vagrant/ip`
+  if grep -q '^[1-9].*[1-9]$' /home/vagrant/.ip; then
+    IP=`cat /home/vagrant/.ip`
   else
     # Lets not give bogus data then
     >&2 echo "File in webplatform/ops clone the file ../vagrant-workbench/.ip will update itself by Vagrant"
@@ -31,7 +31,7 @@ if [ -f /home/vagrant/ip ]; then
     IP="127.0.0.1"
   fi
 else
-  # No /home/vagrant/ip file
+  # No /home/vagrant/.ip file
   # Lets not give bogus data
   >&2 echo "Could not fine vagrant-workbench IP address, please make sure there is a VM there."
   >&2 echo "Giving 127.0.0.1 as salt master in /etc/hosts as a fallback."
@@ -47,7 +47,7 @@ else
   # Append it to the hosts file
   # I tried to do an echo here, didnt work, lets keep it
   # like that here instead.
-  cat /home/vagrant/ip | sed -e "s/$/\tsalt/" >> /etc/hosts
+  cat /home/vagrant/.ip | sed -e "s/$/\tsalt/" >> /etc/hosts
   echo "Added /etc/hosts entry IP for salt to $IP"
 fi
 SALT_IP
@@ -74,8 +74,8 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
-  config.vm.provision "file", source: "../vagrant-workbench/.ip", destination: "/home/vagrant/ip", run: "always"
-  config.vm.provision "file", source: "../vagrant-workbench/.grains", destination: "/home/vagrant/grains", run: "always"
+  config.vm.provision "file", source: "../vagrant-workbench/.ip", destination: "/home/vagrant/.ip", run: "always"
+  config.vm.provision "file", source: "../vagrant-workbench/.grains", destination: "/home/vagrant/.grains", run: "always"
 
   if Vagrant.has_plugin?("vagrant-cachier")
     # Configure cached packages to be shared between instances of the same base box.
@@ -89,6 +89,20 @@ Vagrant.configure("2") do |config|
     # ref: http://docs.vagrantup.com/v2/synced-folders/basic_usage.html
   end
   config.cache.enable :apt
+
+  # Use of: https://github.com/ggiamarchi/vagrant-openstack-provider
+  # DOESNT WORK ON DREAMCOMPUTE, COMMENTING IT OUT FOR NOW
+  #if Vagrant.has_plugin?("vagrant-openstack-provider")
+  #  config.ssh.username = "#{ENV['VAGRANT_OS_DEFAULT_USERNAME']}"
+  #  config.vm.provider :openstack do |os|
+  #    os.openstack_auth_url = "#{ENV['OS_AUTH_URL']}"
+  #    os.username           = "#{ENV['OS_USERNAME']}"
+  #    os.password           = "#{ENV['OS_PASSWORD']}"
+  #    os.tenant_name        = "#{ENV['OS_TENANT_NAME']}"
+  #    os.flavor             = "#{ENV['VAGRANT_OS_FLAVOR']}"
+  #    os.image              = "#{ENV['VAGRANT_OS_IMAGE']}"
+  #  end
+  #end
 
   # Common VirtualBox settings
   config.vm.provider "virtualbox" do |v|

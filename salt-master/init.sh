@@ -139,6 +139,7 @@ WEBPLATFORM_ASCII_BANNER
 echo " "
 echo " "
 echo "Bootstrapping a new Salt master"
+echo " * Check in both OpenStack and Vagrant if we get same value for both variables; SUDO_USER: ${SUDO_USER}, RUNAS: ${RUNAS} should be the same."
 
 
 declare -r SALT_BIN=`which salt-call`
@@ -173,38 +174,42 @@ fi
 #
 cat << _EOF_
 
- This script is about cloning git repos and some of them have sensitive
- data from https://gitlab.w3.org/webplatform/salt-pillar-private.git.
+ This script is about cloning git repos we need.
 
- In order to import that sensitive data we need a temporary private-public
- keypair. With it, we’ll be able to fetch private data along with public.
+ Some of them has sensitive data and this script will attempt to clone the
+ repositories with a local SSH key.
+
+ In order to run this script successfully, you should make sure the remotes
+ we use has your key authorized.
 
  You can create your own keypair and add them to this script yourself.
 
- You got to make sure you remove that key from Gitolite afterwards
- unless you never publish them publicly.
+ To generate a temporary key, run the following;
 
- To generate a temporary key, run the following (no need for passphrase):
+    ssh-keygen -f /home/${SUDO_USER}/.ssh/id_rsa
+    cat /home/${SUDO_USER}/.ssh/id_rsa.pub
+    cat /home/${SUDO_USER}/.ssh/id_rsa
 
-    ssh-keygen -f foo
-    cat foo.pub
-    cat foo
+ Make sure the key is installed:
 
- If we already have a keypair, you should see below what you need to copy
- in Gitolite on source.webplatform.org
-
-
-
- OTHERWISE THE SCRIPT WILL BREAK :(
+   - https://gitlab.w3.org/webplatform/
+   - https://github.com/webplatform/
+   - git@source.webplatform.org:gitolite-admin.git
 
 
+ OTHERWISE THE SCRIPT WON’T COMPLETE.
 
 
 _EOF_
 
 
 while true; do
-    read -p "Did you add the public key in your SSH keys? (y/n): " yn
+    echo ""
+    echo "Here is the key: "
+    cat /home/${SUDO_USER}/.ssh/id_rsa.pub
+    echo ""
+
+    read -p "Do you have this public key enabled in previously described repositories? (y/n): " yn
     case $yn in
         [Yy]* ) break;;
         [Nn]* ) exit;;
@@ -213,47 +218,70 @@ while true; do
 done
 
 
-if [ ! -f "/etc/salt/minion.d/initial_user.conf" ]; then
-  printf "grains:\n  initial_user: ${RUNAS}\n" > /etc/salt/minion.d/initial_user.conf
+grep -q -e "initial_user" /etc/salt/grains || printf "initial_user: ${RUNAS}\n" >> /etc/salt/grains
+
+
+#
+# The file /etc/salt/minion.d/workbench.conf should ONLY be added
+# via Vagrantfile. This is how we know if we want to clone formulas
+# of use them as gitfs.
+#
+# To rework this bit, you will have to review the salt/new_master.sls
+# state file. The /etc/salt/master.d/gitfs.conf content is loaded in function
+# of the "biosversion" grain, if it matches "VirtualBox".
+#
+# For now, lets only support local formula workbench on VirtualBox VMs
+#
+if [ -f "/etc/salt/minion.d/workbench.conf" ]; then
+  declare -r IS_WORKBENCH=1
+  declare -r level='workbench'
+else
+  declare -r IS_WORKBENCH=0
 fi
 
+if [ ! -f "/etc/salt/minion.d/saltmaster.conf" ]; then
+  clear
+  echo ""
+  echo "What is the deployment level of this cluster? Will it be used as the"
+  echo "new production, staging, or a Salt state development workbench?"
+  echo ""
 
-if [ ! -f "/etc/salt/grains" ]; then
-clear
-echo ""
-echo "What is the deployment level of this cluster? Will it be used as the"
-echo "new production, staging, or a development workspace?"
-echo ""
+  if [ $IS_WORKBENCH == 0 ]; then
+    while true; do
+      read -p "What is this salt-master targeted level? [staging,production]: " level
+      case $level in
+          staging ) break;;
+          production ) break;;
+          * ) echo "Only lowercase is accepted; one of [staging,production].";;
+      esac
+    done
+  fi
 
-while true; do
-    read -p "What is this salt-master targeted level? [staging,production,workbench]: " level
-    case $level in
-        staging ) break;;
-        production ) break;;
-        workbench ) break;;
-        * ) echo "Only lowercase is accepted; one of [staging,production,workbench].";;
-    esac
-done
+  ## We are hardcoding the name "salt" here because we EXPLICTLY want that VM to be
+  ## called that name.
+  echo " * Making sure the /etc/hosts file has the loopback 127.0.0.1 with the name salt in it"
+  sed -i "s/^127.0.1.1 $(hostname)/127.0.1.1 salt.${level}.wpdn salt/g" /etc/hosts
+  grep -q -e "salt" /etc/hosts || printf "127.0.1.1 salt.${level}.wpdn salt" >> /etc/hosts
+  printf "id: salt\n" > /etc/salt/minion.d/id.conf
 
-## We are hardcoding the name "salt" here because we EXPLICTLY want that VM to be
-## called that name.
-echo " * Making sure the hosts file has 127.0.1.1 to declare our environment level"
-sed -i "s/^127.0.1.1 $(hostname)/127.0.1.1 salt.${level}.wpdn salt/g" /etc/hosts
-grep -q -e "salt" /etc/hosts || printf "127.0.1.1 salt.${level}.wpdn salt" >> /etc/hosts
+  if [ $IS_WORKBENCH == 0 ]; then
+    grep -q -e "level" /etc/salt/grains || printf "level: ${level}\n" >> /etc/salt/grains
+  fi
 
 (cat <<- _EOF_
 # This salt master has been created on ${DATE}
 # via webplatform/ops salt-master/init.sh script
-level: ${level}
 _EOF_
-) > /etc/salt/grains
-  echo " * Added new grain; deployment level: ${level}"
+) > /etc/salt/minion.d/saltmaster.conf
+
+  echo " * Added level grain in /etc/salt/grains, set value to: ${level}"
+  echo " * Created /etc/salt/minion.d/saltmaster.conf so we know its a salt-master"
 else
-  echo " * Grains already exist on this (future) salt master, did not overwrite"
+  echo " * salt-master touchfile at /etc/salt/minion.d/saltmaster.conf already existed. Did nothing."
 fi
 
 
-echo " * Making sure the name of the master is salt"
+echo " * Add debug output to the salt configuration"
 (cat <<- _EOF_
 log_level: debug
 log_level_logfile: debug
@@ -321,14 +349,14 @@ echo " * Overriden /srv/pillar/top.sls to have only basesystem.salt for now"
 printf "base:\n  salt:\n    - basesystem.salt\n" > /srv/pillar/top.sls
 
 
+echo " * Restarting salt-minion and salt-master"
 /usr/sbin/service salt-minion restart
 /usr/sbin/service salt-master restart
 
 
 if [ ! -f /etc/salt/pki/master/minions/salt ]; then
-  echo " * Auto accept salt, we are going to wait 10 seconds so that we can auto-accept"
+  echo " * Auto accept salt, we are going to wait 10 seconds to be sure we can accept it"
   sleep 10
-
   salt-key -y -a salt
 else
   echo " * Auto accept salt; already done"
@@ -341,7 +369,7 @@ echo " * Synced grains, pillars, states, returners, etc."
 
 echo ""
 echo "Launching salt.new_salt_master state..."
-salt-call state.apply salt.new_master
+salt-call state.sls salt.new_master
 
 
 echo "... done"
@@ -356,14 +384,24 @@ git checkout top.sls
 echo " * Set back overridden /srv/pillar/top.sls file"
 
 
-if [ ! -f "/etc/salt/minion.d/workbench.conf" ]; then
+if [ $IS_WORKBENCH == 0 ]; then
   rm /home/${RUNAS}/.ssh/id_rsa{,.pub}
   echo " * Removed temporary SSH keys"
   if [ -d "/srv/formulas/basesystem" ]; then
     rm -rf /srv/formulas/basesystem
     echo " * Removed /srv/formulas/basesystem, we should have it in gitfs anyway"
   fi
+else
+  cp /etc/salt/grains /vagrant/.grains
 fi
+
+echo " * Restarting salt-minion and salt-master"
+/usr/sbin/service salt-minion restart
+/usr/sbin/service salt-master restart
+
+
+echo " * Refreshing pillar and all the rest"
+salt-call saltutil.sync_all
 
 echo "... done"
 
@@ -373,18 +411,7 @@ echo "Step 1 of 3 completed!"
 echo ""
 
 
-#
-# The file /etc/salt/minion.d/workbench.conf should ONLY be added
-# via Vagrantfile. This is how we know if we want to clone formulas
-# of use them as gitfs.
-#
-# To rework this bit, you will have to review the salt/new_master.sls
-# state file. The /etc/salt/master.d/gitfs.conf content is loaded in function
-# of the "biosversion" grain, if it matches "VirtualBox".
-#
-# For now, lets only support local formula workbench on VirtualBox VMs
-#
-if [ ! -f "/etc/salt/minion.d/workbench.conf" ]; then
+if [ $IS_WORKBENCH == 0 ]; then
   echo ""
   echo "We now have a VM, somewhere. Thats great!"
   echo ""

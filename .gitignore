@@ -11,4 +11,6 @@ vagrant-workbench/.grains
 vagrant-minions/.grains
 vagrant-minions/minions.yml
 vagrant-minions/shared
+vagrant-minions/sourceme.fish
+vagrant-minions/sourceme.sh
 .vagrant
