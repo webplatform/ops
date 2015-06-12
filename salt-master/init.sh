@@ -218,7 +218,7 @@ while true; do
 done
 
 
-grep -q -e "initial_user" /etc/salt/grains || printf "initial_user: ${RUNAS}\n" >> /etc/salt/grains
+grep -q -e "initial_user" /etc/salt/grains || printf "\ninitial_user: ${RUNAS}\n" >> /etc/salt/grains
 
 
 #
@@ -298,8 +298,8 @@ repos["salt"]="https://github.com/webplatform/salt-states.git"
 repos["pillar"]="https://github.com/webplatform/salt-pillar.git"
 repos["formulas/basesystem"]="https://github.com/webplatform/salt-basesystem.git"
 
-options["salt"]="--quiet"
-options["pillar"]="--quiet"
+options["salt"]="--branch 201506-refactor-cleanup --quiet"
+options["pillar"]="--branch 201506-refactor --quiet"
 options["formulas/basesystem"]="--quiet"
 
 
@@ -308,8 +308,9 @@ echo "Setting up some global preferences"
 
 echo " * First, set Git to remember Git/HTTP authentication credentials to ONE hour"
 # ref https://help.github.com/articles/caching-your-github-password-in-git/#platform-linux
-salt-call --log-level=quiet --local git.config_set setting_name=credential.helper setting_value="cache --timeout=3600" is_global=True
-chown -R ${RUNAS}:${GROUP} /home/${RUNAS}/.gitconfig /home/${RUNAS}/.git-credential-cache
+salt-call --log-level=quiet --local git.config_set setting_name=credential.helper setting_value="cache --timeout=3600" is_global=True user="${RUNAS}"
+chown -R ${RUNAS}:${GROUP} /home/${RUNAS}
+#chown -R ${RUNAS}:${GROUP} /home/${RUNAS}/.gitconfig /home/${RUNAS}/.git-credential-cache
 
 
 echo " * Ensure Git editor is vim"
@@ -434,7 +435,6 @@ if [ $IS_WORKBENCH == 0 ]; then
   echo "We now have a VM, somewhere. Thats great!"
   echo ""
   echo "Next steps;"
-  echo " salt-key"
   echo " salt-call state.highstate"
   echo " bash /srv/ops/salt-master/packages.sh"
   echo ""
