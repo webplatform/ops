@@ -1,0 +1,49 @@
+#cloud-config
+
+
+manage_etc_hosts: false # Has to be set to false for everybody. Otherwise we need a DNS
+manage-resolv-conf: false
+
+
+locale: en_US.UTF-8
+timezone: America/New_York
+package_upgrade: true
+package_update: true
+package_reboot_if_required: true
+
+
+#
+# This is run at EVERY boot, good to ensure things are at the right place
+#
+bootcmd:
+  - grep -q -e 'wpdn' /etc/resolvconf/resolv.conf.d/base || printf "search workbench.wpdn\ndomain workbench.wpdn\nnameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
+  - grep -q -e 'wpdn' /etc/resolv.conf || resolvconf -u
+
+runcmd:
+  - sed -i "s/127.0.0.1 localhost/127.0.1.1 $(hostname).workbench.wpdn $(hostname)\n127.0.0.1 localhost/" /etc/hosts
+  - add-apt-repository -y ppa:saltstack/salt
+  - apt-get update
+  - apt-get -y upgrade salt-minion
+
+
+write_files:
+  - encoding: b64
+    ## Below is for workbench
+    content: bGV2ZWw6IHdvcmtiZW5jaA==
+    path: /etc/salt/grains
+
+# The content property above ^ contains a base64 encoded string that contains "level: foo" (without quotes)
+# it was meant to make sure that cloudinit wouldn’t break because it was taking previous attempts as part
+# of the rest of this YAML document.
+
+
+packages:
+  - salt-minion
+  - salt-common
+  - python-software-properties
+  - software-properties-common
+
+final_message: "All my work here is done"
+
+# vim: et ts=2 sw=2 ft=yml
+

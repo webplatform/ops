@@ -13,4 +13,5 @@ vagrant-minions/minions.yml
 vagrant-minions/shared
 vagrant-minions/sourceme.fish
 vagrant-minions/sourceme.sh
+vagrant-minions/userdata-vagrant-minion.yml
 .vagrant

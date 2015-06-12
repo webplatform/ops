@@ -6,6 +6,7 @@
 # ---
 #   - name: app0
 #   - name: db-masterdb
+#     provider: openstack
 #   - name: sessions1
 #
 require 'yaml'
@@ -90,25 +91,6 @@ Vagrant.configure("2") do |config|
   end
   config.cache.enable :apt
 
-  # Use of: https://github.com/ggiamarchi/vagrant-openstack-provider
-  # DOESNT WORK ON DREAMCOMPUTE, COMMENTING IT OUT FOR NOW
-  #if Vagrant.has_plugin?("vagrant-openstack-provider")
-  #  config.ssh.username = "#{ENV['VAGRANT_OS_DEFAULT_USERNAME']}"
-  #  config.vm.provider :openstack do |os|
-  #    os.openstack_auth_url = "#{ENV['OS_AUTH_URL']}"
-  #    os.username           = "#{ENV['OS_USERNAME']}"
-  #    os.password           = "#{ENV['OS_PASSWORD']}"
-  #    os.tenant_name        = "#{ENV['OS_TENANT_NAME']}"
-  #    os.flavor             = "#{ENV['VAGRANT_OS_FLAVOR']}"
-  #    os.image              = "#{ENV['VAGRANT_OS_IMAGE']}"
-  #  end
-  #end
-
-  # Common VirtualBox settings
-  config.vm.provider "virtualbox" do |v|
-    v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
-  end
-
   # Common Salt settings
   config.vm.provision :salt do |s|
     s.verbose = false
@@ -117,31 +99,59 @@ Vagrant.configure("2") do |config|
   vagrant_minions.each do |minion|
     config.vm.define minion["name"] do |m|
       m.vm.hostname = minion["name"] + ".workbench.wpdn"
-      m.vm.provider "virtualbox" do |v|
-        v.name = m.vm.hostname
-        if minion["cpu_cap"]
-          v.customize ["modifyvm", :id, "--cpuexecutioncap", minion["cpu_cap"].to_i.to_s]
+      if minion['provider'] == 'openstack'
+        if ENV['OS_AUTH_URL']
+          require 'vagrant-openstack-plugin'
+          # Use of: https://github.com/cloudbau/vagrant-openstack-plugin
+          # See also http://pastebin.com/aEZk6Mws
+          if Vagrant.has_plugin?("vagrant-openstack-plugin")
+            if ENV['VAGRANT_OS_PRIVATE_KEY']
+              m.ssh.private_key_path = "#{ENV['VAGRANT_OS_PRIVATE_KEY']}"
+            end
+            m.vm.box_url   = 'https://github.com/cloudbau/vagrant-openstack-plugin/raw/master/dummy.box'
+            m.vm.box       = "dummy"
+            m.vm.provider :openstack do |os|
+              os.endpoint     = "#{ENV['OS_AUTH_URL']}/tokens"
+              os.user_data    = File.read('./userdata-vagrant-minion.yml') # user_data expects string, even though its written in YAML format
+              os.username     = "#{ENV['OS_USERNAME']}"
+              os.api_key      = "#{ENV['OS_PASSWORD']}"
+              os.tenant       = "#{ENV['OS_TENANT_NAME']}"
+              os.flavor       = "#{ENV['VAGRANT_OS_FLAVOR']}"
+              os.image        = "#{ENV['VAGRANT_OS_IMAGE']}"
+              os.networks     = ["#{ENV['VAGRANT_OS_NETWORKS']}"]
+              os.keypair_name = "#{ENV['VAGRANT_OS_KEYNAME']}"
+              os.ssh_username = "#{ENV['VAGRANT_OS_DEFAULT_USERNAME']}"
+            end
+          end
         end
-        if minion["ram"]
-          v.customize ["modifyvm", :id, "--memory", minion["ram"].to_i.to_s]
+      else
+        m.vm.provider "virtualbox" do |v|
+          v.name = m.vm.hostname
+          if minion["cpu_cap"]
+            v.customize ["modifyvm", :id, "--cpuexecutioncap", minion["cpu_cap"].to_i.to_s]
+          end
+          if minion["ram"]
+            v.customize ["modifyvm", :id, "--memory", minion["ram"].to_i.to_s]
+          end
+          v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
+        end
+      end
+      if minion["mounts"].is_a?(Array)
+        minion['mounts'].each do |dir|
+          m.vm.synced_folder dir['host'], dir['guest'], type: 'nfs', create: true
         end
       end
       m.vm.provision "shell" do |s|
         s.inline = "touch /etc/salt/minion.d/workbench.conf ; grep -q -e $1 /etc/salt/minion.d/workbench.conf || printf \"id: $1\" >> /etc/salt/minion.d/workbench.conf"
         s.args   = minion["name"]
       end
-      if minion["mounts"].is_a?(Array)
-        minion['mounts'].each do |dir|
-          config.vm.synced_folder dir['host'], dir['guest'], type: 'nfs', create: true
-        end
-      end
       if minion["ports"].is_a?(Array)
         minion['ports'].each do |port|
           # Gotta figure out how to do proper if here. #gottalearnruby
           if port["protocol"]
-            config.vm.network :forwarded_port, host: port['host'], guest: port['guest'], protocol: port['protocol'], auto_correct: true
+            m.vm.network :forwarded_port, host: port['host'], guest: port['guest'], protocol: port['protocol'], auto_correct: true
           else
-            config.vm.network :forwarded_port, host: port['host'], guest: port['guest'], auto_correct: true
+            m.vm.network :forwarded_port, host: port['host'], guest: port['guest'], auto_correct: true
           end
         end
       end

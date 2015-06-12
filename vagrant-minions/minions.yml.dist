@@ -1,5 +1,6 @@
 ---
   - name: db-masterdb
+    provider: openstack
     ports:
       - { host: 3306, guest: 3306 }
   - name: docker

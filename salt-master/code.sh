@@ -50,18 +50,12 @@ find /srv/private -type d -exec chmod 770 {} \;
 chmod 755 /srv/salt/_grains/*.py
 fi
 
+
 echo "About to clone code..."
+
 
 cd /srv/code
 
-if [ $IS_WORKBENCH == 1 ]; then
-  echo "We will NOT clone MediaWiki, you will have to do it yourself. Its TOO HEAVY."
-  # This ID is based on the salt-basesystem/macros/git.sls git_clone() macro
-  SLS_IGNORE = 'exclude=[{"id": "Git clone /srv/code/wiki/repo/mediawiki"}]'
-else
-  echo "We WILL clone MediaWiki."
-  SLS_IGNORE = ''
-fi
 
 #salt-call --local --log-level=quiet git.config_set setting_name=user.email setting_value="hostmaster@webplatform.org" is_global=True
 #salt-call --local --log-level=quiet git.config_set setting_name=user.name setting_value="WebPlatform Continuous Build user" is_global=True
@@ -71,7 +65,7 @@ salt-call --local --log-level=quiet git.config_set setting_name=core.editor sett
 
 echo ""
 echo "We will be cloning code repositories:"
-salt-call state.sls roles.salt ${SLS_IGNORE}
+salt-call state.sls code
 
 
 if [ $IS_WORKBENCH == 0 ]; then
