@@ -57,10 +57,8 @@ echo "About to clone code..."
 cd /srv/code
 
 
-#salt-call --local --log-level=quiet git.config_set setting_name=user.email setting_value="hostmaster@webplatform.org" is_global=True
-#salt-call --local --log-level=quiet git.config_set setting_name=user.name setting_value="WebPlatform Continuous Build user" is_global=True
+# Should we do that too, unsure yet
 #salt-call --local --log-level=quiet git.config_set setting_name=core.autocrlf setting_value=true is_global=True
-salt-call --local --log-level=quiet git.config_set setting_name=core.editor setting_value=vim is_global=True
 
 
 echo ""

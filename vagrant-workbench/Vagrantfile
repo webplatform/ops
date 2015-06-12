@@ -23,9 +23,16 @@ SALT_SCRIPT
 
 $salt_ip_grain = <<SALT_GRAIN
   echo "Create ~/.ip file so we know the current IP address"
-  if [ -f /etc/salt/pki/master/minions/salt ]; then
-    salt-call --log-level=quiet --no-color --local grains.get ip4_interfaces:eth1 --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"][0]' > /vagrant/.ip
-    #salt-call --log-level=quiet --no-color --local grains.get ipaddr --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"]' > /vagrant/.ip
+  if [ -f /etc/salt/pki/master/minions/salt]; then
+    if [ ! -f /vagrant/.ip ]; then
+      salt-call --log-level=quiet --no-color --local grains.get ip4_interfaces:eth1 --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"][0]' > /vagrant/.ip
+      #salt-call --log-level=quiet --no-color --local grains.get ipaddr --output=json | python -c 'import sys,json; print json.load(sys.stdin)[\"local\"]' > /vagrant/.ip
+      echo " * Created .ip in vagrant-workbench/ folder. You can either edit to match your local environment. If you delete it, it’ll be recreated at next boot."
+    else
+      echo " * Did not change the .ip file, it already existed."
+    fi
+  else
+    echo " * Could not get the IP, the salt master isnt registered yet."
   fi
 SALT_GRAIN
 

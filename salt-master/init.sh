@@ -304,7 +304,25 @@ options["formulas/basesystem"]="--quiet"
 
 
 echo ""
+echo "Setting up some global preferences"
+
+echo " * First, set Git to remember Git/HTTP authentication credentials to ONE hour"
+# ref https://help.github.com/articles/caching-your-github-password-in-git/#platform-linux
+salt-call --log-level=quiet --local git.config_set setting_name=credential.helper setting_value="cache --timeout=3600" is_global=True
+chown -R ${RUNAS}:${GROUP} /home/${RUNAS}/.gitconfig /home/${RUNAS}/.git-credential-cache
+
+
+echo " * Ensure Git editor is vim"
+salt-call --log-level=quiet --local --log-level=quiet git.config_set setting_name=core.editor setting_value=vim is_global=True
+
+echo " * Set default Git user email and name"
+salt-call --local --log-level=quiet git.config_set setting_name=user.email setting_value="team-webplatform-systems@w3.org" is_global=True
+salt-call --local --log-level=quiet git.config_set setting_name=user.name setting_value="WebPlatform Continuous Build user" is_global=True
+
+
+echo ""
 echo "We will be cloning our new Salt master config repos:"
+
 
 for key in ${!repos[@]}; do
     if [ ! -d "/srv/${key}/.git" ]; then
