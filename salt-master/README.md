@@ -46,11 +46,13 @@ The following set of files can be used to create a new salt master to replicate 
 
         scp -r .ssh dhc-user@10.10.10.129:~
 
+
 1. On the new VM
 
         ssh dhc-user@10.10.10.129
         sudo mkdir -p /srv/private
         sudo chown dhc-user:dhc-user /srv/private
+        sudo salt-call --log-level=quiet --local git.config_set setting_name=credential.helper setting_value="cache --timeout=3600" is_global=True user="dhc-user"
         git clone -b 201506-refactor https://gitlab.w3.org/webplatform/salt-pillar-private.git /srv/private
         sudo -s
         RUNAS=dhc-user GROUP=dhc-user bash init.sh

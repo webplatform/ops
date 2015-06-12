@@ -32,13 +32,13 @@ package_reboot_if_required: true
 
 # This is run at EVERY boot, good to ensure things are at the right place
 bootcmd:
+  - sed -i "s/127.0.0.1 localhost/127.0.0.1 salt localhost/" /etc/hosts
   - grep -q -e 'nameserver' /etc/resolvconf/resolv.conf.d/head || printf "nameserver 127.0.0.1\n" >> /etc/resolvconf/resolv.conf.d/head
   - grep -q -e 'wpdn' /etc/resolvconf/resolv.conf.d/base || printf "search production.wpdn\ndomain production.wpdn\nnameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
   - grep -q -e 'wpdn' /etc/resolv.conf || resolvconf -u
 
 
 runcmd:
-  - sed -i "s/127.0.0.1 localhost/127.0.1.1 $(hostname).staging.wpdn $(hostname)\n127.0.0.1 localhost/" /etc/hosts
   - add-apt-repository -y ppa:saltstack/salt
   - apt-get update
   - apt-get -yqq upgrade
@@ -48,10 +48,6 @@ runcmd:
 
 
 write_files:
-  - encoding: b64
-    content: bGV2ZWw6IHN0YWdpbmc=
-    path: /etc/salt/grains
-    permissions: '0644'
   - encoding: b64
     path: /etc/salt/minion.d/id.conf
     content: aWQ6IHNhbHQ=
@@ -69,6 +65,7 @@ packages:
   - salt-minion
   - salt-master
   - git
+  - unzip
 
 # vim: et ts=2 sw=2 ft=yaml:
 

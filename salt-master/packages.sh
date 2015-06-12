@@ -51,7 +51,7 @@ echo ""
 echo "Step 2 of 3 completed!"
 echo ""
 echo "Assuming you have a user foo, with SSH keys setup in highstate, run:"
-echo "  RUNAS=foo bash /srv/ops/salt-master/code.sh"
+echo "  RUNAS=${SUDO_USER} bash /srv/ops/salt-master/code.sh"
 echo ""
 
 exit 0
