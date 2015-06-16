@@ -298,7 +298,7 @@ repos["salt"]="https://github.com/webplatform/salt-states.git"
 repos["pillar"]="https://github.com/webplatform/salt-pillar.git"
 repos["formulas/basesystem"]="https://github.com/webplatform/salt-basesystem.git"
 
-options["salt"]="--branch 201506-refactor-cleanup --quiet"
+options["salt"]="--branch 201506-refactor --quiet"
 options["pillar"]="--branch 201506-refactor --quiet"
 options["formulas/basesystem"]="--quiet"
 
