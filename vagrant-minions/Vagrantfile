@@ -73,8 +73,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.network "private_network", type: "dhcp"
 
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-
   config.vm.provision "file", source: "../vagrant-workbench/.ip", destination: "/home/vagrant/.ip", run: "always"
   config.vm.provision "file", source: "../vagrant-workbench/.grains", destination: "/home/vagrant/.grains", run: "always"
 
@@ -127,18 +125,18 @@ Vagrant.configure("2") do |config|
       else
         m.vm.provider "virtualbox" do |v|
           v.name = m.vm.hostname
+          v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
           if minion["cpu_cap"]
             v.customize ["modifyvm", :id, "--cpuexecutioncap", minion["cpu_cap"].to_i.to_s]
           end
           if minion["ram"]
             v.customize ["modifyvm", :id, "--memory", minion["ram"].to_i.to_s]
           end
-          v.customize ['modifyvm', :id, '--ostype', 'Ubuntu_64']
         end
       end
       if minion["mounts"].is_a?(Array)
         minion['mounts'].each do |dir|
-          m.vm.synced_folder dir['host'], dir['guest'], type: 'nfs', create: true
+          m.vm.synced_folder dir["host"], dir["guest"], type: "nfs", create: true
         end
       end
       m.vm.provision "shell" do |s|
@@ -149,9 +147,9 @@ Vagrant.configure("2") do |config|
         minion['ports'].each do |port|
           # Gotta figure out how to do proper if here. #gottalearnruby
           if port["protocol"]
-            m.vm.network :forwarded_port, host: port['host'], guest: port['guest'], protocol: port['protocol'], auto_correct: true
+            m.vm.network :forwarded_port, host: port["host"], guest: port["guest"], protocol: port["protocol"], auto_correct: true
           else
-            m.vm.network :forwarded_port, host: port['host'], guest: port['guest'], auto_correct: true
+            m.vm.network :forwarded_port, host: port["host"], guest: port["guest"], auto_correct: true
           end
         end
       end

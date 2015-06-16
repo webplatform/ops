@@ -40,7 +40,7 @@ fi
 if [ $IS_WORKBENCH == 0 ]; then
 echo "Setting file ownership on salt master checkouts"
 chmod g+w /srv/code
-chown -R nobody:deployment /srv/{salt,pillar,private,code}
+chown -R renoirb:deployment /srv/{salt,pillar,private,code}
 find /srv/salt -type f -exec chmod 664 {} \;
 find /srv/pillar -type f -exec chmod 664 {} \;
 find /srv/private -type f -exec chmod 660 {} \;
@@ -67,7 +67,7 @@ salt-call state.sls code
 
 
 if [ $IS_WORKBENCH == 0 ]; then
-  chown -R nobody:deployment /srv/code/
+  chown -R renoirb:deployment /srv/code/
   find /srv/code -type f -exec chmod g+w {} \;
   find /srv/code -type d -exec chmod g+w {} \;
   find /srv/code -type d -exec chmod g+x {} \;
