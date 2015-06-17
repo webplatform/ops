@@ -43,8 +43,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.network :forwarded_port, host: 4505, guest: 4505
   config.vm.network :forwarded_port, host: 4506, guest: 4506
-  config.vm.network :forwarded_port, host: 873, guest: 8973
-  config.vm.network :forwarded_port, host: 53, guest: 8953, protocol: 'udp'
+  config.vm.network :forwarded_port, host: 5353, guest: 5353, protocol: 'udp'
 
   config.vm.network "private_network", type: "dhcp"
 

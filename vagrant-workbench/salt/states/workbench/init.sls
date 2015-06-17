@@ -23,3 +23,14 @@ Remove stuff we dont need:
       - puppet-common
       - chef
       - chef-zero
+
+Create unprivilegied DNS proxy server:
+  pkg.installed:
+    - name: dnsmasq
+
+/etc/dnsmasq.d/workbench:
+  file.managed:
+    - contents: |
+        # Managed by Salt Stack. Do NOT edit manually!
+        port=5353
+

@@ -1,6 +1,5 @@
 ---
-  - name: db-masterdb
-    provider: openstack
+  - name: masterdb
     ports:
       - { host: 3306, guest: 3306 }
   - name: docker
@@ -20,9 +19,42 @@
     mounts:
       - { host: '../vagrant-workbench/repos/code/wiki/repo/mediawiki', guest: '/srv/webplatform/wiki/wpwiki/mediawiki' }
       - { host: '../vagrant-workbench/repos/code/dabblet/repo', guest: '/srv/webplatform/dabblet' }
+      - { host: '../vagrant-workbench/repos/code/compat/repo', guest: '/srv/webplatform/compat' }
+      - { host: '../vagrant-workbench/repos/code/www/repo', guest: '/srv/webplatform/www' }
+      - { host: '../vagrant-workbench/repos/code/packages/certificates/staging', guest: '/etc/ssl/webplatform' }
   - name: sessions0
     ports:
       - { host: 6379, guest: 6379 }
       - { host: 11211, guest: 11211 }
+
+  # Make sure we only have one monitor node
+  - name: monitor
+    ports:
+      - { host: 8652, guest: 8652 }
+      - { host: 8649, guest: 8649, protocol: 'udp' }
+      - { host: 8600, guest: 8600, protocol: 'both' }
+      - { host: 8601, guest: 8601, protocol: 'both' }
+      - { host: 8602, guest: 8602, protocol: 'both' }
+      - { host: 8603, guest: 8603, protocol: 'both' }
+      - { host: 8604, guest: 8604, protocol: 'both' }
+      - { host: 8605, guest: 8605, protocol: 'both' }
+      - { host: 8606, guest: 8606, protocol: 'both' }
+      - { host: 8607, guest: 8607, protocol: 'both' }
+      - { host: 8608, guest: 8608, protocol: 'both' }
+      - { host: 8609, guest: 8609, protocol: 'both' }
+      - { host: 8610, guest: 8610, protocol: 'both' }
+      - { host: 8611, guest: 8611, protocol: 'both' }
+      - { host: 8612, guest: 8612, protocol: 'both' }
+      - { host: 8613, guest: 8613, protocol: 'both' }
+      - { host: 8614, guest: 8614, protocol: 'both' }
+      - { host: 8615, guest: 8615, protocol: 'both' }
+      - { host: 8616, guest: 8616, protocol: 'both' }
+      - { host: 8617, guest: 8617, protocol: 'both' }
+      - { host: 8618, guest: 8618, protocol: 'both' }
+      - { host: 8619, guest: 8619, protocol: 'both' }
+      - { host: 8620, guest: 8620, protocol: 'both' }
+      - { host: 8621, guest: 8621, protocol: 'both' }
+      - { host: 8622, guest: 8622, protocol: 'both' }
+      - { host: 8623, guest: 8623, protocol: 'both' }
 
 # vim: et ts=2 sw=2 ft=yaml:
