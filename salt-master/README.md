@@ -70,7 +70,7 @@ file and point resolv.conf to the previous salt-master IP.
             ssh dhc-user@localhost -p 2400
             RUNAS=dhc-user GROUP=dhc-user bash init.sh
 
-  Once the three scripts in /srv/ops/salt-master/ are done, follow the instructions, we can [launch new minions][#Create new minions]!
+  Once the three scripts in */srv/ops/salt-master/* are done, follow the instructions, we can [launch new minions](#Create new minions)
 
 
 ### Create new minions
@@ -78,21 +78,9 @@ file and point resolv.conf to the previous salt-master IP.
 Here are a few node boot commands. I generally boot them in that order.
 
 Some VM must exist only once, below are the ones I generally summon.
-To know which names are sensitive, refer to [Nodes that MUST exist][#Nodes that MUST exist] section.
+To know which names are sensitive, refer to [Nodes that MUST exist](#Nodes that MUST exist) section.
 
-
-Copy essential files to the new salt master
-
-* ~/.ssh/
-* /srv/ops/salt-master/init.sh
-
-Then launch init.sh
-
-    RUNAS=dhc-user GROUP=dhc-user bash init.sh
-
-Once the three scripts in /srv/ops/salt-master/ are done, follow the instructions, we can launch new minions!
-
-From the new salt master, run;
+From the new salt master;
 
     export COMMON_OPTS="--image Ubuntu-14.04-Trusty --user-data /srv/ops/userdata.txt --key_name renoirb-staging"
     nova boot $COMMON_OPTS --flavor lightspeed --security-groups default masterdb
