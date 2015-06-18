@@ -1,5 +1,5 @@
 {% set salt_workbench_eth1 = salt['publish.publish']('salt', 'grains.get', 'ip4_interfaces:eth1') %}
-{% set salt_master_ip = salt['pillar.get']('infra:hosts_entries:salt', '127,0,0,1') %}
+{% set salt_master_ip = salt['pillar.get']('infra:hosts_entries:salt', '127.0.0.1') %}
 
 python-git:
   pkg.installed

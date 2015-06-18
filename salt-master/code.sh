@@ -71,6 +71,7 @@ if [ $IS_WORKBENCH == 0 ]; then
   find /srv/code -type f -exec chmod g+w {} \;
   find /srv/code -type d -exec chmod g+w {} \;
   find /srv/code -type d -exec chmod g+x {} \;
+  find /srv/code/packages/certificates -type f -exec chmod 644 {} \;
 fi
 
 
