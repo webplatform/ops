@@ -4,11 +4,3 @@ Copy around the grains file for vagrant-minions to use:
     - creates: /vagrant/.grains
     - onlyif: test -f /etc/salt/grains
 
-/etc/dnsmasq.d/workbench-salt:
-  file.managed:
-    - contents: |
-        # Managed by Salt Stack. Do NOT edit manually!
-        port=5353
-    - require:
-      - pkg: dnsmasq
-

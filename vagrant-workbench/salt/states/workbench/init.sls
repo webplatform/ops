@@ -27,11 +27,11 @@ Remove stuff we dont need:
       - chef
       - chef-zero
 
+{% if grains['nodename'] != 'salt' %}
 Create unprivilegied DNS proxy server:
   pkg.installed:
     - name: dnsmasq
 
-{% if grains['nodename'] != 'salt' %}
 /etc/dnsmasq.d/workbench:
   file.managed:
     - contents: |
