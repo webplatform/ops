@@ -83,13 +83,17 @@ To know which names are sensitive, refer to [Nodes that MUST exist](#Nodes that 
 From the new salt master;
 
     export COMMON_OPTS="--image Ubuntu-14.04-Trusty --user-data /srv/ops/userdata.txt --key_name renoirb-staging"
-    nova boot $COMMON_OPTS --flavor lightspeed --security-groups default masterdb
-    nova boot $COMMON_OPTS --flavor supersonic --security-groups default backup
+    nova boot $COMMON_OPTS --flavor lightspeed masterdb
+    nova boot $COMMON_OPTS --flavor supersonic backup
     nova boot $COMMON_OPTS --flavor supersonic --security-groups default,mailhub mail
-    nova boot $COMMON_OPTS --flavor supersonic --security-groups default monitor
-    nova boot $COMMON_OPTS --flavor lightspeed --security-groups default sessions1
-    nova boot $COMMON_OPTS --flavor lightspeed --security-groups default redis-alpha1
-    nova boot $COMMON_OPTS --flavor lightspeed --security-groups default memcache-alpha1
+    nova boot $COMMON_OPTS --flavor supersonic monitor
+    nova boot $COMMON_OPTS --flavor lightspeed sessions1
+    nova boot $COMMON_OPTS --flavor lightspeed redis-alpha1
+    nova boot $COMMON_OPTS --flavor lightspeed memcache-alpha1
+    nova boot $COMMON_OPTS --flavor supersonic --security-groups default,frontend frontend1
+    nova boot $COMMON_OPTS --flavor supersonic --security-groups default,frontend frontend2
+    nova boot $COMMON_OPTS --flavor supersonic --security-groups default,frontend blog
+    nova boot $COMMON_OPTS --flavor supersonic --security-groups default,frontend project
 
 
 ## Nodes that MUST exist
@@ -107,6 +111,8 @@ Those nodes must exist with this exact name so that other VMs can do essential t
 ### Numbered friendly VMs
 
 * appN
+* projectN
+* blogN
 * dbN
 * sessionsN
 
