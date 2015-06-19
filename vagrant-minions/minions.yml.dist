@@ -2,6 +2,12 @@
   - name: masterdb
     ports:
       - { host: 3306, guest: 3306 }
+  - name: upstream-auth
+    ports:
+      - { host: 9000, guest: 9000 }
+      - { host: 8081, guest: 8081 }
+      - { host: 9010, guest: 9010 }
+      - { host: 3030, guest: 3030 }
   - name: docker
     ram: 2054
     cpu_cap: 53
