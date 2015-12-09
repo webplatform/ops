@@ -1,7 +1,8 @@
+{# #TODO: Ordering problem, see: http://ryandlane.com/blog/2015/01/06/truly-ordered-execution-using-saltstack-part-2/
 {% if grains['nodename'] == 'salt' %}
-include:
-  - workbench.salt
+{% include "salt.sls" %}
 {% endif %}
+#}
 
 python-git:
   pkg.installed

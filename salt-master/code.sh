@@ -86,7 +86,13 @@ if [ $IS_WORKBENCH == 0 ]; then
   options["wiki"]="--branch wmf/1.25wmf15 --quiet"
   #options["wiki"]="--branch 1.24wmf16-wpd --recurse-submodules --quiet"
 else
-  echo "We will NOT clone MediaWiki, you will have to do it yourself. Its TOO HEAVY."
+  mkdir -p /srv/code/wiki/repo
+(cat <<- _EOF_
+git clone --branch wmf/1.25wmf15 git@github.com:webplatform/mediawiki-core.git mediawiki
+_EOF_
+) > /srv/code/wiki/repo/runme.sh
+
+  echo "We will NOT clone MediaWiki, you will have to do it yourself. Its TOO HEAVY. See /srv/code/wiki/repo/runme.sh script"
 fi
 
 #salt-call --local --log-level=quiet git.config_set setting_name=user.email setting_value="hostmaster@webplatform.org" is_global=True
@@ -147,5 +153,6 @@ else
   echo ""
   echo "ALSO; we didn't clone MediaWiki. Its too heavy."
   echo "This part should be adressed differently or we should rework how we deploy MediaWiki."
+  echo "... take a look at /srv/code/wiki/repo/runme.sh script"
 fi
 exit 0
