@@ -1,19 +1,17 @@
-# Bootstrapping a new Salt Master for WebPlatform
+# Bootstrapping a new Salt Master
 
-The following set of files can be used to create a new salt master to replicate WebPlatform.org.
+The following set of files can be used to create a new salt master and   automate what gets installed for multiple deployment environments.
 
-[Full states][wpd-salt-states] and [non private pillars][wpd-salt-pillars] are publicly available.
-
-  [wpd-salt-states]: https://github.com/webplatform/salt-states
-  [wpd-salt-pillars]: https://github.com/webplatform/salt-pillars
 
 ## Create new cluster
 
-All minions must be launched from its own salt master because it manages its own CloudInit userdata file
-that makes the minion point to the salt master right after its done.
+All minions must be launched from its own salt master because it  
+manages its own CloudInit userdata file that makes the minion point to   
+the salt master right after its done.
 
-Besides, it can happen that if you create another salt-master and change the minion, that Cloud-Init would rewrite a config
-file and point resolv.conf to the previous salt-master IP.
+Besides, it can happen that if you create another salt-master and change the  
+minion, that Cloud-Init would rewrite a config file and point resolv.conf   
+to the previous salt-master IP.
 
 1. Will this deployment to use *webplatform.org* (production) or *webplatformstaging.org* (staging)?
 

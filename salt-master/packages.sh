@@ -23,24 +23,33 @@ if [ ! -f "/srv/ci-dreamobjects.sh" ]; then
     exit 1
 fi
 
-echo "About to download all the packages in DreamObject wpd-packages bucket"
-
 cd /srv
-. ci-dreamobjects.sh
-mkdir -p code/packages
-cd code/packages
-swift list wpd-packages > filesList
-while read FILE; do swift download wpd-packages $FILE --skip-identical; done < filesList
-rm filesList
-chown -R nobody:deployment /srv/code/packages
 
-mkdir -p /srv/code/auth-server
-cp -r /srv/code/packages/auth-server/dists /srv/code/auth-server/dists
-chown -R nobody:deployment /srv/code/auth-server
+if [ ! -d "/srv/code/packages" ]; then
+  echo "About to download all the packages in DreamObject wpd-packages bucket"
+  . ci-dreamobjects.sh
+  mkdir -p code/packages
+  cd code/packages
+  swift list wpd-packages > filesList
+  while read FILE; do swift download wpd-packages $FILE --skip-identical; done < filesList
+  rm filesList
+fi
 
-mkdir -p /srv/code/notes-server
-cp -r /srv/code/packages/notes-server/dists /srv/code/notes-server/dists
-chown -R nobody:deployment /srv/code/notes-server
+if [ -d "/srv/code/packages" ]; then
+  chown -R nobody:deployment /srv/code/packages
+fi
+
+if [ -d "/srv/code/packages/auth-server/dists" ]; then
+  mkdir -p /srv/code/auth-server
+  cp -r /srv/code/packages/auth-server/dists /srv/code/auth-server/dists
+  chown -R nobody:deployment /srv/code/auth-server
+fi
+
+if [ -d "/srv/code/packages/notes-server/dists" ]; then
+  mkdir -p /srv/code/notes-server
+  cp -r /srv/code/packages/notes-server/dists /srv/code/notes-server/dists
+  chown -R nobody:deployment /srv/code/notes-server
+fi
 
 echo ""
 echo "Extracting our SSL certificates, you will be prompted a passphrase"

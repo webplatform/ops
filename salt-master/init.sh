@@ -7,7 +7,7 @@ set -e
 #
 # *Cloning Salt configurations*
 #
-# This script is meant to be run only once per salt master
+# This script is meant to be run only on a salt master
 # so that every code dependencies are cloned and installed
 # in a constant fashion.
 #
@@ -298,8 +298,8 @@ repos["salt"]="https://github.com/webplatform/salt-states.git"
 repos["pillar"]="https://github.com/webplatform/salt-pillar.git"
 repos["formulas/basesystem"]="https://github.com/webplatform/salt-basesystem.git"
 
-options["salt"]="--branch 201506-refactor --quiet"
-options["pillar"]="--branch 201506-refactor --quiet"
+options["salt"]="--branch slimmer --quiet"
+options["pillar"]="--branch slimmer --quiet"
 options["formulas/basesystem"]="--quiet"
 
 
@@ -365,6 +365,9 @@ echo " * Added roots definitions"
 
 
 echo " * Overriden /srv/pillar/top.sls to have only basesystem.salt for now"
+if [ -f "/srv/pillar/top.sls" ]; then
+  cp /srv/pillar/top.sls /srv/pillar/top.sls.bak
+fi
 printf "base:\n  salt:\n    - basesystem.salt\n" > /srv/pillar/top.sls
 
 
@@ -390,7 +393,6 @@ echo ""
 echo "Launching salt.new_salt_master state..."
 salt-call state.sls salt.new_master
 
-
 echo "... done"
 
 
@@ -398,8 +400,9 @@ echo ""
 echo "Cleaning things up:"
 
 
-cd /srv/pillar
-git checkout top.sls
+if [ -f "/srv/pillar/top.sls.bak" ]; then
+  mv /srv/pillar/top.sls.bak /srv/pillar/top.sls
+fi
 echo " * Set back overridden /srv/pillar/top.sls file"
 
 
@@ -434,17 +437,18 @@ if [ $IS_WORKBENCH == 0 ]; then
   echo ""
   echo "We now have a VM, somewhere. Thats great!"
   echo ""
+  echo "Make sure you also setup a local workbench for development too!"
+  echo ""
+  echo "This salt master SHOULD ONLY be used to run from states PULLED"
+  echo "FROM REMOTE and CLEAN Git repositories. #guiltcheck"
+  echo ""
   echo "Next steps;"
   echo " salt-call state.highstate"
   echo " bash /srv/ops/salt-master/packages.sh"
   echo ""
 else
   echo ""
-  echo "We now have a Vagrant Workbench, thats great!"
-  echo ""
-  echo "If its the first time you build, you have to reboot, e.g."
-  echo " vagrant halt"
-  echo " vagrant up"
+  echo "We now have a Vagrant Workbench. Thats great!"
   echo ""
   echo "Next steps;"
   echo " salt-call state.highstate"
